@@ -46,7 +46,8 @@ defineExpose({
   play: () => engine?.play(),
   pause: () => engine?.pause(),
   setTimeframe: (tf: TimeframeId) => engine?.setTimeframe(tf),
-  setDrawingMode: () => {}
+  setDrawingMode: () => {},
+  scrollToLive: () => {}
 })
 </script>
 

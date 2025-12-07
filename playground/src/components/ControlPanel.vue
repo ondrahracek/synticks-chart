@@ -15,6 +15,28 @@
         {{ tf }}
       </button>
     </div>
+    <div class="playback-buttons">
+      <button
+        data-test="btn-play"
+        :disabled="isPlaying"
+        @click="emit('play')"
+      >
+        Play
+      </button>
+      <button
+        data-test="btn-pause"
+        :disabled="!isPlaying"
+        @click="emit('pause')"
+      >
+        Pause
+      </button>
+      <button
+        data-test="btn-live"
+        @click="emit('live')"
+      >
+        Go LIVE
+      </button>
+    </div>
   </div>
 </template>
 
@@ -24,11 +46,15 @@ import type { TimeframeId } from 'synticks-chart'
 defineProps<{
   symbol: string
   timeframe: TimeframeId
+  isPlaying: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'update:symbol', value: string): void
   (e: 'update:timeframe', value: TimeframeId): void
+  (e: 'play'): void
+  (e: 'pause'): void
+  (e: 'live'): void
 }>()
 
 const timeframes: TimeframeId[] = ['1m', '5m', '15m', '1h', '1d']
