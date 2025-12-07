@@ -72,7 +72,7 @@ function handleGoLive() {
 
 function handleLoadSample() {
   const candles = generateSampleData()
-  chartRef.value?.loadMockData?.(candles)
+  chartRef.value?.loadCandles?.(candles)
 }
 
 function handleResetData() {
@@ -81,7 +81,7 @@ function handleResetData() {
 
 function handleAddRandomCandle() {
   const candle = generateRandomCandle()
-  chartRef.value?.appendMockCandle?.(candle)
+  chartRef.value?.appendCandle?.(candle)
 }
 
 function handleSetTool(mode: string) {

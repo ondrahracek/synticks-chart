@@ -3,6 +3,7 @@ import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { ChartEngine, type ChartEngineOptions } from '../engine/ChartEngine'
 import type { TimeframeId, Candle } from '../core/types'
 import type { ThemeName } from '../core/theme'
+import type { InteractionMode } from '../core/state'
 
 interface Props {
   symbol: string
@@ -16,11 +17,11 @@ let engine: ChartEngine | null = null
 
 onMounted(() => {
   if (!canvasRef.value) return
-  
+
   const rect = canvasRef.value.getBoundingClientRect()
   canvasRef.value.width = rect.width
   canvasRef.value.height = rect.height
-  
+
   engine = new ChartEngine(canvasRef.value, {
     symbol: props.symbol,
     timeframe: props.timeframe
@@ -58,11 +59,11 @@ defineExpose({
   play: () => engine?.play(),
   pause: () => engine?.pause(),
   setTimeframe: (tf: TimeframeId) => engine?.setTimeframe(tf),
-  setDrawingMode: (mode: string) => engine?.setDrawingMode?.(mode),
-  scrollToLive: () => {},
-  loadMockData: (candles: Candle[]) => engine?.loadMockData?.(candles),
+  setDrawingMode: (mode: string) => engine?.setDrawingMode?.(mode as InteractionMode),
+  scrollToLive: () => { },
+  loadCandles: (candles: Candle[]) => engine?.loadCandles?.(candles),
   resetData: () => engine?.resetData?.(),
-  appendMockCandle: (candle: Candle) => engine?.appendMockCandle?.(candle),
+  appendCandle: (candle: Candle) => engine?.appendCandle?.(candle),
   clearDrawings: () => engine?.clearDrawings?.(),
   addIndicator: (id: string, inputs: Record<string, unknown>) => engine?.addIndicator?.(id, inputs),
   removeIndicator: (id: string) => engine?.removeIndicator?.(id),

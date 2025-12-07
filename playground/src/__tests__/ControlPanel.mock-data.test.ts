@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import App from '../App.vue'
 
-const loadMockData = vi.fn()
+const loadCandles = vi.fn()
 const resetData = vi.fn()
-const appendMockCandle = vi.fn()
+const appendCandle = vi.fn()
 
 vi.mock('synticks-chart/vue', () => ({
   PlaygroundChart: {
@@ -13,9 +13,9 @@ vi.mock('synticks-chart/vue', () => ({
     template: '<div></div>',
     setup() {
       return {
-        loadMockData,
+        loadCandles,
         resetData,
-        appendMockCandle
+        appendCandle
       }
     }
   }
@@ -23,12 +23,12 @@ vi.mock('synticks-chart/vue', () => ({
 
 describe('ControlPanel - Mock Data', () => {
   beforeEach(() => {
-    loadMockData.mockClear()
+    loadCandles.mockClear()
     resetData.mockClear()
-    appendMockCandle.mockClear()
+    appendCandle.mockClear()
   })
 
-  it('calls loadMockData when Load sample data button is clicked', async () => {
+  it('calls loadCandles when Load sample data button is clicked', async () => {
     const wrapper = mount(App)
     
     const loadButton = wrapper.find('[data-test="btn-load-sample"]')
@@ -36,8 +36,8 @@ describe('ControlPanel - Mock Data', () => {
     
     await loadButton.trigger('click')
     
-    expect(loadMockData).toHaveBeenCalledTimes(1)
-    expect(loadMockData).toHaveBeenCalledWith(expect.arrayContaining([
+    expect(loadCandles).toHaveBeenCalledTimes(1)
+    expect(loadCandles).toHaveBeenCalledWith(expect.arrayContaining([
       expect.objectContaining({
         timestamp: expect.any(Number),
         open: expect.any(Number),
@@ -60,7 +60,7 @@ describe('ControlPanel - Mock Data', () => {
     expect(resetData).toHaveBeenCalledTimes(1)
   })
 
-  it('calls appendMockCandle when Add random candle button is clicked', async () => {
+  it('calls appendCandle when Add random candle button is clicked', async () => {
     const wrapper = mount(App)
     
     const addButton = wrapper.find('[data-test="btn-add-candle"]')
@@ -68,8 +68,8 @@ describe('ControlPanel - Mock Data', () => {
     
     await addButton.trigger('click')
     
-    expect(appendMockCandle).toHaveBeenCalledTimes(1)
-    expect(appendMockCandle).toHaveBeenCalledWith(expect.objectContaining({
+    expect(appendCandle).toHaveBeenCalledTimes(1)
+    expect(appendCandle).toHaveBeenCalledWith(expect.objectContaining({
       timestamp: expect.any(Number),
       open: expect.any(Number),
       high: expect.any(Number),

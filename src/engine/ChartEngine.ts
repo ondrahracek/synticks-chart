@@ -115,7 +115,7 @@ export class ChartEngine {
     }
   }
 
-  loadMockData(candles: Candle[]): void {
+  loadCandles(candles: Candle[]): void {
     this.state.candles = candles
     
     if (candles.length > 0) {
@@ -137,7 +137,7 @@ export class ChartEngine {
     this.animationLoop.setTargetState(this.state)
   }
 
-  appendMockCandle(candle: Candle): void {
+  appendCandle(candle: Candle): void {
     this.state.candles.push(candle)
     this.recalculateAllIndicators()
     this.animationLoop.setTargetState(this.state)
