@@ -15,15 +15,15 @@
 ## Install
 
 ```bash
-npm install @onditech/synticks-chart
+npm install synticks-chart
 # or
-yarn add @onditech/synticks-chart
+yarn add synticks-chart
 ```
 
 ## Quickstart (Vue 3)
 
 ```ts
-import { PlaygroundChart } from "@onditech/synticks-chart/vue";
+import { PlaygroundChart } from "synticks-chart/vue";
 ```
 
 ```vue
