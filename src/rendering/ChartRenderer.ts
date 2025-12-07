@@ -27,7 +27,13 @@ export class ChartRenderer {
   }
 
   render(): void {
-    if (!this.canvas || !this.state || !this.viewport) return
+    if (!this.canvas || !this.state) return
+
+    if (this.state.viewport) {
+      this.viewport = this.state.viewport
+    }
+
+    if (!this.viewport) return
 
     const ctx = this.canvas.getContext('2d')
     if (!ctx) return
