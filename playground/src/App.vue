@@ -5,12 +5,13 @@ import ControlPanel from './components/ControlPanel.vue'
 import StatusPanel from './components/StatusPanel.vue'
 import { usePlaygroundState } from './composables/usePlaygroundState'
 import { generateSampleData, generateRandomCandle } from './utils/mockData'
+import { ThemeName } from 'synticks-chart'
 
 const chartRef = ref<InstanceType<typeof PlaygroundChart> | null>(null)
 const { symbol, timeframe } = usePlaygroundState()
 const isPlaying = ref(false)
 const activeTool = ref<string>('pan')
-const theme = ref<string>('light')
+const theme = ref<ThemeName>('light')
 const indicators = ref({
   sma20: false,
   sma50: false,
@@ -103,7 +104,7 @@ function handleToggleIndicator(payload: { type: string; period: number }) {
   }
 }
 
-function handleSetTheme(newTheme: string) {
+function handleSetTheme(newTheme: ThemeName) {
   theme.value = newTheme
   chartRef.value?.setTheme?.(newTheme)
 }
