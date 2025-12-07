@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { ChartEngine, type ChartEngineOptions } from '../engine/ChartEngine'
-import type { TimeframeId } from '../core/types'
+import type { TimeframeId, Candle } from '../core/types'
 
 interface Props {
   symbol: string
@@ -47,7 +47,10 @@ defineExpose({
   pause: () => engine?.pause(),
   setTimeframe: (tf: TimeframeId) => engine?.setTimeframe(tf),
   setDrawingMode: () => {},
-  scrollToLive: () => {}
+  scrollToLive: () => {},
+  loadMockData: (candles: Candle[]) => engine?.loadMockData?.(candles),
+  resetData: () => engine?.resetData?.(),
+  appendMockCandle: (candle: Candle) => engine?.appendMockCandle?.(candle)
 })
 </script>
 

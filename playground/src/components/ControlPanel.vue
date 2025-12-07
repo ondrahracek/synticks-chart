@@ -37,6 +37,26 @@
         Go LIVE
       </button>
     </div>
+    <div class="mock-data-buttons">
+      <button
+        data-test="btn-load-sample"
+        @click="emit('loadSample')"
+      >
+        Load sample data
+      </button>
+      <button
+        data-test="btn-reset"
+        @click="emit('resetData')"
+      >
+        Reset
+      </button>
+      <button
+        data-test="btn-add-candle"
+        @click="emit('addRandomCandle')"
+      >
+        Add random candle
+      </button>
+    </div>
   </div>
 </template>
 
@@ -55,6 +75,9 @@ const emit = defineEmits<{
   (e: 'play'): void
   (e: 'pause'): void
   (e: 'live'): void
+  (e: 'loadSample'): void
+  (e: 'resetData'): void
+  (e: 'addRandomCandle'): void
 }>()
 
 const timeframes: TimeframeId[] = ['1m', '5m', '15m', '1h', '1d']

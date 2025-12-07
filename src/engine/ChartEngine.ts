@@ -1,4 +1,4 @@
-import type { TimeframeId } from '../core/types'
+import type { TimeframeId, Candle } from '../core/types'
 import { createChartState, type ChartState } from '../core/state'
 import { PlaybackController } from '../core/playback'
 import { ChartRenderer } from '../rendering/ChartRenderer'
@@ -64,6 +64,22 @@ export class ChartEngine {
 
   removeIndicator(id: string): void {
     // Indicator removal logic
+  }
+
+  loadMockData(candles: Candle[]): void {
+    this.state.candles = candles
+    this.animationLoop.setTargetState(this.state)
+  }
+
+  resetData(): void {
+    this.state.candles = []
+    this.state.missedCandles = []
+    this.animationLoop.setTargetState(this.state)
+  }
+
+  appendMockCandle(candle: Candle): void {
+    this.state.candles.push(candle)
+    this.animationLoop.setTargetState(this.state)
   }
 
   destroy(): void {

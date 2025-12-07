@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { PlaygroundChart } from 'synticks-chart/vue'
 import ControlPanel from './components/ControlPanel.vue'
 import { usePlaygroundState } from './composables/usePlaygroundState'
+import { generateSampleData, generateRandomCandle } from './utils/mockData'
 
 const chartRef = ref<InstanceType<typeof PlaygroundChart> | null>(null)
 const { symbol, timeframe } = usePlaygroundState()
@@ -21,6 +22,20 @@ function handlePause() {
 function handleGoLive() {
   chartRef.value?.scrollToLive?.()
 }
+
+function handleLoadSample() {
+  const candles = generateSampleData()
+  chartRef.value?.loadMockData?.(candles)
+}
+
+function handleResetData() {
+  chartRef.value?.resetData?.()
+}
+
+function handleAddRandomCandle() {
+  const candle = generateRandomCandle()
+  chartRef.value?.appendMockCandle?.(candle)
+}
 </script>
 
 <template>
@@ -35,6 +50,9 @@ function handleGoLive() {
         @play="handlePlay"
         @pause="handlePause"
         @live="handleGoLive"
+        @load-sample="handleLoadSample"
+        @reset-data="handleResetData"
+        @add-random-candle="handleAddRandomCandle"
       />
       <div style="flex:1; min-height:0; padding:16px;">
         <PlaygroundChart
