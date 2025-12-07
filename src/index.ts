@@ -1,4 +1,5 @@
 export * from './core/types'
 export * from './core/time'
+export * from './core/timeframes'
 export * from './engine/ChartEngine'
 export * from './core/indicators'
