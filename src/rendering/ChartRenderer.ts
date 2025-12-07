@@ -51,15 +51,19 @@ export class ChartRenderer {
     this.viewport = viewport
   }
 
+  private getThemeColor(key: keyof NonNullable<ChartState['theme']>, fallback: string): string {
+    return this.state?.theme?.[key] || fallback
+  }
+
   private drawBackground(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = '#ffffff'
+    ctx.fillStyle = this.getThemeColor('background', '#ffffff')
     ctx.fillRect(0, 0, this.canvas!.width, this.canvas!.height)
   }
 
   private drawGrid(ctx: CanvasRenderingContext2D): void {
     if (!this.viewport) return
 
-    ctx.strokeStyle = '#e0e0e0'
+    ctx.strokeStyle = this.getThemeColor('grid', '#e0e0e0')
     ctx.lineWidth = 1
 
     const gridLines = 5
@@ -91,8 +95,11 @@ export class ChartRenderer {
 
     const rects = computeCandleRects(candles, this.viewport, minPrice, maxPrice)
 
+    const candleUpColor = this.getThemeColor('candleUp', '#26a69a')
+    const candleDownColor = this.getThemeColor('candleDown', '#ef5350')
+
     for (const rect of rects) {
-      ctx.fillStyle = rect.isUp ? '#26a69a' : '#ef5350'
+      ctx.fillStyle = rect.isUp ? candleUpColor : candleDownColor
       ctx.fillRect(rect.x, rect.y, rect.w, rect.h)
     }
   }
@@ -107,7 +114,7 @@ export class ChartRenderer {
     const minPrice = candles.length > 0 ? Math.min(...candles.map(c => c.low)) : 0
     const maxPrice = candles.length > 0 ? Math.max(...candles.map(c => c.high)) : 100
 
-    ctx.strokeStyle = '#2196F3'
+    ctx.strokeStyle = this.getThemeColor('drawing', '#2196F3')
     ctx.lineWidth = 2
 
     for (const drawing of drawings) {
