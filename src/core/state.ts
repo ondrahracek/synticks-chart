@@ -1,6 +1,7 @@
 import type { Candle, PlaybackMode } from './types'
 import type { Viewport } from './viewport'
 import type { DrawingShape } from './drawings'
+import type { Theme } from './theme'
 
 export interface ViewportState {
   // TODO: viewport properties
@@ -21,6 +22,7 @@ export interface ChartState {
   crosshair?: Crosshair
   drawings?: DrawingShape[]
   interactionMode?: InteractionMode
+  theme?: Theme
 }
 
 export function createChartState(): ChartState {

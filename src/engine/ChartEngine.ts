@@ -5,6 +5,8 @@ import { ChartRenderer } from '../rendering/ChartRenderer'
 import { AnimationLoop } from '../rendering/AnimationLoop'
 import { InputController } from '../interaction/InputController'
 import { IndicatorRegistry } from '../core/indicators'
+import type { ThemeName } from '../core/theme'
+import { getTheme } from '../core/theme'
 
 export interface ChartEngineOptions {
   symbol: string
@@ -91,6 +93,11 @@ export class ChartEngine {
 
   clearDrawings(): void {
     this.state.drawings = []
+    this.animationLoop.setTargetState(this.state)
+  }
+
+  setTheme(themeName: ThemeName): void {
+    this.state.theme = getTheme(themeName)
     this.animationLoop.setTargetState(this.state)
   }
 

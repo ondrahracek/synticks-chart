@@ -2,10 +2,12 @@
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { ChartEngine, type ChartEngineOptions } from '../engine/ChartEngine'
 import type { TimeframeId, Candle } from '../core/types'
+import type { ThemeName } from '../core/theme'
 
 interface Props {
   symbol: string
   timeframe: TimeframeId
+  theme?: ThemeName
 }
 
 const props = defineProps<Props>()
@@ -42,6 +44,12 @@ watch(() => props.timeframe, (newTimeframe: TimeframeId) => {
   }
 })
 
+watch(() => props.theme, (newTheme: ThemeName | undefined) => {
+  if (engine && newTheme) {
+    engine.setTheme(newTheme)
+  }
+})
+
 defineExpose({
   play: () => engine?.play(),
   pause: () => engine?.pause(),
@@ -53,7 +61,8 @@ defineExpose({
   appendMockCandle: (candle: Candle) => engine?.appendMockCandle?.(candle),
   clearDrawings: () => engine?.clearDrawings?.(),
   addIndicator: (id: string, inputs: Record<string, unknown>) => engine?.addIndicator?.(id, inputs),
-  removeIndicator: (id: string) => engine?.removeIndicator?.(id)
+  removeIndicator: (id: string) => engine?.removeIndicator?.(id),
+  setTheme: (theme: ThemeName) => engine?.setTheme?.(theme)
 })
 </script>
 

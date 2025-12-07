@@ -115,6 +115,22 @@
         SMA(200)
       </label>
     </div>
+    <div class="theme-buttons">
+      <button
+        data-test="theme-light"
+        :class="{ active: theme === 'light' }"
+        @click="emit('setTheme', 'light')"
+      >
+        Light
+      </button>
+      <button
+        data-test="theme-dark"
+        :class="{ active: theme === 'dark' }"
+        @click="emit('setTheme', 'dark')"
+      >
+        Dark
+      </button>
+    </div>
   </div>
 </template>
 
@@ -131,6 +147,7 @@ defineProps<{
     sma50: boolean
     sma200: boolean
   }
+  theme: string
 }>()
 
 const emit = defineEmits<{
@@ -145,6 +162,7 @@ const emit = defineEmits<{
   (e: 'setTool', mode: string): void
   (e: 'clearDrawings'): void
   (e: 'toggleIndicator', payload: { type: string; period: number }): void
+  (e: 'setTheme', theme: string): void
 }>()
 
 const timeframes: TimeframeId[] = ['1m', '5m', '15m', '1h', '1d']

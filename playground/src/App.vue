@@ -9,6 +9,7 @@ const chartRef = ref<InstanceType<typeof PlaygroundChart> | null>(null)
 const { symbol, timeframe } = usePlaygroundState()
 const isPlaying = ref(false)
 const activeTool = ref<string>('pan')
+const theme = ref<string>('light')
 const indicators = ref({
   sma20: false,
   sma50: false,
@@ -62,6 +63,11 @@ function handleToggleIndicator(payload: { type: string; period: number }) {
     chartRef.value?.removeIndicator?.(`${payload.type}:${payload.period}`)
   }
 }
+
+function handleSetTheme(newTheme: string) {
+  theme.value = newTheme
+  chartRef.value?.setTheme?.(newTheme)
+}
 </script>
 
 <template>
@@ -73,6 +79,7 @@ function handleToggleIndicator(payload: { type: string; period: number }) {
         :is-playing="isPlaying"
         :active-tool="activeTool"
         :indicators="indicators"
+        :theme="theme"
         @update:symbol="symbol = $event"
         @update:timeframe="timeframe = $event"
         @play="handlePlay"
@@ -84,12 +91,14 @@ function handleToggleIndicator(payload: { type: string; period: number }) {
         @set-tool="handleSetTool"
         @clear-drawings="handleClearDrawings"
         @toggle-indicator="handleToggleIndicator"
+        @set-theme="handleSetTheme"
       />
       <div style="flex:1; min-height:0; padding:16px;">
         <PlaygroundChart
           ref="chartRef"
           :symbol="symbol"
           :timeframe="timeframe"
+          :theme="theme"
         />
       </div>
     </div>
