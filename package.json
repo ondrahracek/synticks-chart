@@ -51,10 +51,11 @@
   "homepage": "https://github.com/ondrahracek/synticks-chart#readme",
   "devDependencies": {
     "@types/node": "^22.x",
+    "@vitest/ui": "^1.6.1",
     "eslint": "^9.x",
     "tsup": "^8.x",
     "typescript": "^5.9.3",
-    "vitest": "^1.x"
+    "vitest": "^1.6.1"
   },
   "peerDependencies": {
     "vue": "^3.3.0"
