@@ -1,5 +1,5 @@
 import type { TimeframeId, Candle } from '../core/types'
-import { createChartState, type ChartState } from '../core/state'
+import { createChartState, type ChartState, type InteractionMode } from '../core/state'
 import { PlaybackController } from '../core/playback'
 import { ChartRenderer } from '../rendering/ChartRenderer'
 import { AnimationLoop } from '../rendering/AnimationLoop'
@@ -79,6 +79,16 @@ export class ChartEngine {
 
   appendMockCandle(candle: Candle): void {
     this.state.candles.push(candle)
+    this.animationLoop.setTargetState(this.state)
+  }
+
+  setDrawingMode(mode: InteractionMode): void {
+    this.state.interactionMode = mode
+    this.animationLoop.setTargetState(this.state)
+  }
+
+  clearDrawings(): void {
+    this.state.drawings = []
     this.animationLoop.setTargetState(this.state)
   }
 

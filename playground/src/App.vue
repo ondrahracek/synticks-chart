@@ -8,6 +8,7 @@ import { generateSampleData, generateRandomCandle } from './utils/mockData'
 const chartRef = ref<InstanceType<typeof PlaygroundChart> | null>(null)
 const { symbol, timeframe } = usePlaygroundState()
 const isPlaying = ref(false)
+const activeTool = ref<string>('pan')
 
 function handlePlay() {
   chartRef.value?.play()
@@ -36,6 +37,15 @@ function handleAddRandomCandle() {
   const candle = generateRandomCandle()
   chartRef.value?.appendMockCandle?.(candle)
 }
+
+function handleSetTool(mode: string) {
+  activeTool.value = mode
+  chartRef.value?.setDrawingMode?.(mode)
+}
+
+function handleClearDrawings() {
+  chartRef.value?.clearDrawings?.()
+}
 </script>
 
 <template>
@@ -45,6 +55,7 @@ function handleAddRandomCandle() {
         :symbol="symbol"
         :timeframe="timeframe"
         :is-playing="isPlaying"
+        :active-tool="activeTool"
         @update:symbol="symbol = $event"
         @update:timeframe="timeframe = $event"
         @play="handlePlay"
@@ -53,6 +64,8 @@ function handleAddRandomCandle() {
         @load-sample="handleLoadSample"
         @reset-data="handleResetData"
         @add-random-candle="handleAddRandomCandle"
+        @set-tool="handleSetTool"
+        @clear-drawings="handleClearDrawings"
       />
       <div style="flex:1; min-height:0; padding:16px;">
         <PlaygroundChart

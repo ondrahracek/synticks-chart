@@ -57,6 +57,35 @@
         Add random candle
       </button>
     </div>
+    <div class="tools-buttons">
+      <button
+        data-test="btn-tool-cursor"
+        :class="{ active: activeTool === 'pan' }"
+        @click="emit('setTool', 'pan')"
+      >
+        Cursor
+      </button>
+      <button
+        data-test="btn-tool-trendline"
+        :class="{ active: activeTool === 'draw-trendline' }"
+        @click="emit('setTool', 'draw-trendline')"
+      >
+        Trendline
+      </button>
+      <button
+        data-test="btn-tool-horizontal"
+        :class="{ active: activeTool === 'draw-horizontal' }"
+        @click="emit('setTool', 'draw-horizontal')"
+      >
+        Horizontal line
+      </button>
+      <button
+        data-test="btn-clear-drawings"
+        @click="emit('clearDrawings')"
+      >
+        Clear drawings
+      </button>
+    </div>
   </div>
 </template>
 
@@ -67,6 +96,7 @@ defineProps<{
   symbol: string
   timeframe: TimeframeId
   isPlaying: boolean
+  activeTool: string
 }>()
 
 const emit = defineEmits<{
@@ -78,6 +108,8 @@ const emit = defineEmits<{
   (e: 'loadSample'): void
   (e: 'resetData'): void
   (e: 'addRandomCandle'): void
+  (e: 'setTool', mode: string): void
+  (e: 'clearDrawings'): void
 }>()
 
 const timeframes: TimeframeId[] = ['1m', '5m', '15m', '1h', '1d']

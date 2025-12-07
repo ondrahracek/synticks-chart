@@ -46,11 +46,12 @@ defineExpose({
   play: () => engine?.play(),
   pause: () => engine?.pause(),
   setTimeframe: (tf: TimeframeId) => engine?.setTimeframe(tf),
-  setDrawingMode: () => {},
+  setDrawingMode: (mode: string) => engine?.setDrawingMode?.(mode),
   scrollToLive: () => {},
   loadMockData: (candles: Candle[]) => engine?.loadMockData?.(candles),
   resetData: () => engine?.resetData?.(),
-  appendMockCandle: (candle: Candle) => engine?.appendMockCandle?.(candle)
+  appendMockCandle: (candle: Candle) => engine?.appendMockCandle?.(candle),
+  clearDrawings: () => engine?.clearDrawings?.()
 })
 </script>
 
