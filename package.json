@@ -29,7 +29,8 @@
     "build": "tsup src/index.ts src/vue.ts --dts --format cjs,esm --sourcemap --clean",
     "test": "vitest run",
     "lint": "eslint src --ext .ts,.tsx,.vue",
-    "dev": "vite dev --config demo/vite.config.ts"
+    "dev": "vite dev --config demo/vite.config.ts",
+    "playground": "npm --prefix playground run dev"
   },
   "keywords": [
     "chart",

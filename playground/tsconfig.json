@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "synticks-chart": ["../src"]
+    },
+    "jsx": "preserve"
+  },
+  "include": ["src"]
+}
+
