@@ -6,6 +6,7 @@ export class InputController {
   private isDragging = false
   private lastX = 0
   private currentDrawing: { kind: 'trendline' | 'horizontal'; startPoint: { time: number; price: number } } | null = null
+  private lastPinchDistance: number | null = null
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -20,6 +21,9 @@ export class InputController {
     this.canvas.addEventListener('pointermove', this.handlePointerMove.bind(this))
     this.canvas.addEventListener('pointerup', this.handlePointerUp.bind(this))
     this.canvas.addEventListener('wheel', this.handleWheel.bind(this))
+    this.canvas.addEventListener('touchstart', this.handleTouchStart.bind(this))
+    this.canvas.addEventListener('touchmove', this.handleTouchMove.bind(this))
+    this.canvas.addEventListener('touchend', this.handleTouchEnd.bind(this))
   }
 
   private handlePointerDown(e: PointerEvent): void {
@@ -120,5 +124,67 @@ export class InputController {
     const price = yToPrice(y, state.viewport, minPrice, maxPrice)
 
     return { time, price }
+  }
+
+  private handleTouchStart(e: TouchEvent): void {
+    e.preventDefault()
+    if (e.touches.length === 1) {
+      const touch = e.touches[0]
+      const state = this.getState()
+      const rect = this.canvas.getBoundingClientRect()
+      const x = touch.clientX - rect.left
+      const y = touch.clientY - rect.top
+
+      this.updateState({
+        crosshair: { x, y }
+      })
+    } else if (e.touches.length === 2) {
+      const touch1 = e.touches[0]
+      const touch2 = e.touches[1]
+      this.lastPinchDistance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      )
+    }
+  }
+
+  private handleTouchMove(e: TouchEvent): void {
+    e.preventDefault()
+    const state = this.getState()
+    
+    if (e.touches.length === 1) {
+      const touch = e.touches[0]
+      const rect = this.canvas.getBoundingClientRect()
+      const x = touch.clientX - rect.left
+      const y = touch.clientY - rect.top
+
+      this.updateState({
+        crosshair: { x, y }
+      })
+    } else if (e.touches.length === 2 && state.viewport) {
+      const touch1 = e.touches[0]
+      const touch2 = e.touches[1]
+      const distance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      )
+
+      if (this.lastPinchDistance !== null) {
+        const scale = distance / this.lastPinchDistance
+        const centerX = (touch1.clientX + touch2.clientX) / 2
+        const rect = this.canvas.getBoundingClientRect()
+        const offsetX = centerX - rect.left
+        const anchorTime = xToTime(offsetX, state.viewport)
+        const newViewport = zoomViewport(state.viewport, scale, anchorTime)
+        this.updateState({ viewport: newViewport })
+      }
+      this.lastPinchDistance = distance
+    }
+  }
+
+  private handleTouchEnd(e: TouchEvent): void {
+    if (e.touches.length === 0) {
+      this.lastPinchDistance = null
+    }
   }
 }
