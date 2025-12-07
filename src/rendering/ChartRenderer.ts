@@ -2,6 +2,7 @@ import type { ChartState } from '../core/state'
 import type { Viewport } from '../core/viewport'
 import { computeCandleRects } from './layout'
 import { timeToX, priceToY } from '../core/viewport'
+import { calculatePriceInterval, generatePriceLevels, calculateTimeInterval, generateTimeLevels, formatPrice, formatTime, calculateOptimalLineCount } from '../core/grid'
 
 export class ChartRenderer {
   private canvas: HTMLCanvasElement | null = null
@@ -66,21 +67,52 @@ export class ChartRenderer {
     ctx.strokeStyle = this.getThemeColor('grid', '#e0e0e0')
     ctx.lineWidth = 1
 
-    const gridLines = 5
-    for (let i = 0; i <= gridLines; i++) {
-      const y = (this.viewport.heightPx / gridLines) * i
-      ctx.beginPath()
-      ctx.moveTo(0, y)
-      ctx.lineTo(this.viewport.widthPx, y)
-      ctx.stroke()
+    const candles = this.state?.candles || []
+    if (candles.length > 0) {
+      const minPrice = Math.min(...candles.map(c => c.low))
+      const maxPrice = Math.max(...candles.map(c => c.high))
+      const priceSpan = maxPrice - minPrice
+      
+      const targetLines = calculateOptimalLineCount(priceSpan, this.viewport.heightPx, 50)
+      const interval = calculatePriceInterval(minPrice, maxPrice, targetLines)
+      const priceLevels = generatePriceLevels(minPrice, maxPrice, interval)
+      
+      ctx.font = '12px sans-serif'
+      ctx.fillStyle = this.getThemeColor('grid', '#e0e0e0')
+      ctx.textAlign = 'left'
+      ctx.textBaseline = 'middle'
+      
+      for (const price of priceLevels) {
+        const y = priceToY(price, this.viewport, minPrice, maxPrice)
+        ctx.beginPath()
+        ctx.moveTo(0, y)
+        ctx.lineTo(this.viewport.widthPx, y)
+        ctx.stroke()
+        
+        const label = formatPrice(price)
+        ctx.fillText(label, 4, y)
+      }
     }
 
-    for (let i = 0; i <= gridLines; i++) {
-      const x = (this.viewport.widthPx / gridLines) * i
+    const timeSpan = this.viewport.to - this.viewport.from
+    const targetLines = calculateOptimalLineCount(timeSpan, this.viewport.widthPx, 80)
+    const timeInterval = calculateTimeInterval(this.viewport.from, this.viewport.to, targetLines)
+    const timeLevels = generateTimeLevels(this.viewport.from, this.viewport.to, timeInterval)
+    
+    ctx.font = '12px sans-serif'
+    ctx.fillStyle = this.getThemeColor('grid', '#e0e0e0')
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'top'
+    
+    for (const time of timeLevels) {
+      const x = timeToX(time, this.viewport)
       ctx.beginPath()
       ctx.moveTo(x, 0)
       ctx.lineTo(x, this.viewport.heightPx)
       ctx.stroke()
+      
+      const label = formatTime(time, timeInterval)
+      ctx.fillText(label, x, this.viewport.heightPx + 4)
     }
   }
 
