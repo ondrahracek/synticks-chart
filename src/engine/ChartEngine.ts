@@ -8,6 +8,8 @@ import { IndicatorRegistry } from '../core/indicators'
 import type { ThemeName } from '../core/theme'
 import { getTheme } from '../core/theme'
 import type { DrawingShape } from '../core/drawings'
+import { createViewportFromCandles } from '../core/viewport'
+import type { Viewport } from '../core/viewport'
 
 export interface ChartEngineOptions {
   symbol: string
@@ -23,8 +25,10 @@ export class ChartEngine {
   private indicatorRegistry: IndicatorRegistry
   private symbol: string
   private timeframe: TimeframeId
+  private canvas: HTMLCanvasElement
 
   constructor(canvas: HTMLCanvasElement, options: ChartEngineOptions) {
+    this.canvas = canvas
     this.symbol = options.symbol
     this.timeframe = options.timeframe
     this.state = createChartState()
@@ -71,14 +75,32 @@ export class ChartEngine {
     this.animationLoop.setTargetState(this.state)
   }
 
+  private getCanvasDimensions(): { width: number; height: number } {
+    const rect = this.canvas.getBoundingClientRect()
+    return {
+      width: rect.width,
+      height: rect.height
+    }
+  }
+
   loadMockData(candles: Candle[]): void {
     this.state.candles = candles
+    
+    if (candles.length > 0) {
+      const { width, height } = this.getCanvasDimensions()
+      const viewport = createViewportFromCandles(candles, width, height)
+      if (viewport) {
+        this.state.viewport = viewport
+      }
+    }
+    
     this.animationLoop.setTargetState(this.state)
   }
 
   resetData(): void {
     this.state.candles = []
     this.state.missedCandles = []
+    this.state.viewport = undefined
     this.animationLoop.setTargetState(this.state)
   }
 
@@ -109,6 +131,7 @@ export class ChartEngine {
     candles: Candle[]
     drawings?: DrawingShape[]
     indicatorsCount: number
+    viewport?: Viewport
   } {
     return {
       symbol: this.symbol,
@@ -116,7 +139,8 @@ export class ChartEngine {
       playback: this.state.playback,
       candles: this.state.candles,
       drawings: this.state.drawings,
-      indicatorsCount: this.indicatorRegistry.getActiveCount()
+      indicatorsCount: this.indicatorRegistry.getActiveCount(),
+      viewport: this.state.viewport
     }
   }
 

@@ -95,7 +95,7 @@ function handleClearDrawings() {
 function handleToggleIndicator(payload: { type: string; period: number }) {
   const key = `sma${payload.period}` as 'sma20' | 'sma50' | 'sma200'
   indicators.value[key] = !indicators.value[key]
-  
+
   if (indicators.value[key]) {
     chartRef.value?.addIndicator?.(payload.type, { period: payload.period })
   } else {
@@ -112,33 +112,15 @@ function handleSetTheme(newTheme: string) {
 <template>
   <div class="app-root" style="width: 100vw; height: 100vh; box-sizing: border-box;">
     <div class="app-layout" style="display:flex; flex-direction:column; height:100%;">
-      <ControlPanel
-        :symbol="symbol"
-        :timeframe="timeframe"
-        :is-playing="isPlaying"
-        :active-tool="activeTool"
-        :indicators="indicators"
-        :theme="theme"
-        @update:symbol="symbol = $event"
-        @update:timeframe="timeframe = $event"
-        @play="handlePlay"
-        @pause="handlePause"
-        @live="handleGoLive"
-        @load-sample="handleLoadSample"
-        @reset-data="handleResetData"
-        @add-random-candle="handleAddRandomCandle"
-        @set-tool="handleSetTool"
-        @clear-drawings="handleClearDrawings"
-        @toggle-indicator="handleToggleIndicator"
-        @set-theme="handleSetTheme"
-      />
+      <ControlPanel :symbol="symbol" :timeframe="timeframe" :is-playing="isPlaying" :active-tool="activeTool"
+        :indicators="indicators" :theme="theme" @update:symbol="symbol = $event" @update:timeframe="timeframe = $event"
+        @play="handlePlay" @pause="handlePause" @live="handleGoLive" @load-sample="handleLoadSample"
+        @reset-data="handleResetData" @add-random-candle="handleAddRandomCandle" @set-tool="handleSetTool"
+        @clear-drawings="handleClearDrawings" @toggle-indicator="handleToggleIndicator" @set-theme="handleSetTheme" />
       <div style="flex:1; min-height:0; padding:16px; display:flex; flex-direction:column;">
-        <PlaygroundChart
-          ref="chartRef"
-          :symbol="symbol"
-          :timeframe="timeframe"
-          :theme="theme"
-        />
+        <div style="flex: 1; min-height: 0; position: relative;">
+          <PlaygroundChart ref="chartRef" :symbol="symbol" :timeframe="timeframe" :theme="theme" />
+        </div>
         <StatusPanel :state="devState" />
       </div>
     </div>

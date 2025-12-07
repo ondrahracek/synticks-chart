@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { timeToX, xToTime, priceToY, yToPrice, panViewport, zoomViewport } from '../../src/core/viewport'
+import { timeToX, xToTime, priceToY, yToPrice, panViewport, zoomViewport, createViewportFromCandles, updateViewportDimensions } from '../../src/core/viewport'
 import type { Viewport } from '../../src/core/viewport'
+import type { Candle } from '../../src/core/types'
 
 describe('timeToX', () => {
   it('maps from time to 0', () => {
@@ -197,6 +198,55 @@ describe('zoomViewport', () => {
     expect(result.to).toBeGreaterThan(1500)
     expect(result.widthPx).toBe(viewport.widthPx)
     expect(result.heightPx).toBe(viewport.heightPx)
+  })
+})
+
+describe('createViewportFromCandles', () => {
+  it('returns null for empty candles array', () => {
+    expect(createViewportFromCandles([], 800, 600)).toBeNull()
+  })
+
+  it('creates viewport with correct time range', () => {
+    const candles: Candle[] = [
+      { timestamp: 1000, open: 100, high: 110, low: 90, close: 105, volume: 1000 },
+      { timestamp: 2000, open: 105, high: 115, low: 95, close: 110, volume: 1000 }
+    ]
+    const viewport = createViewportFromCandles(candles, 800, 600)
+    
+    expect(viewport).not.toBeNull()
+    expect(viewport!.from).toBeLessThan(1000)
+    expect(viewport!.to).toBeGreaterThan(2000)
+    expect(viewport!.widthPx).toBe(800)
+    expect(viewport!.heightPx).toBe(600)
+  })
+
+  it('handles single candle', () => {
+    const candles: Candle[] = [
+      { timestamp: 1000, open: 100, high: 110, low: 90, close: 105, volume: 1000 }
+    ]
+    const viewport = createViewportFromCandles(candles, 800, 600)
+    
+    expect(viewport).not.toBeNull()
+    expect(viewport!.from).toBeLessThan(1000)
+    expect(viewport!.to).toBeGreaterThan(1000)
+  })
+})
+
+describe('updateViewportDimensions', () => {
+  it('updates dimensions while preserving time range', () => {
+    const viewport: Viewport = {
+      from: 1000,
+      to: 2000,
+      widthPx: 800,
+      heightPx: 600
+    }
+    
+    const updated = updateViewportDimensions(viewport, 1200, 900)
+    
+    expect(updated.from).toBe(1000)
+    expect(updated.to).toBe(2000)
+    expect(updated.widthPx).toBe(1200)
+    expect(updated.heightPx).toBe(900)
   })
 })
 

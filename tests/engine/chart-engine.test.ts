@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ChartEngine } from '../../src/engine/ChartEngine'
-import type { TimeframeId } from '../../src/core/types'
+import type { TimeframeId, Candle } from '../../src/core/types'
 
 describe('ChartEngine', () => {
   let canvas: HTMLCanvasElement
@@ -75,6 +75,36 @@ describe('ChartEngine', () => {
     engine.removeIndicator('sma')
 
     expect(engine).toBeDefined()
+  })
+
+  it('creates viewport when loading mock data', () => {
+    const engine = new ChartEngine(canvas, { symbol: 'BTCUSDT', timeframe: '1m' })
+    const candles: Candle[] = [
+      { timestamp: 1000, open: 100, high: 110, low: 90, close: 105, volume: 1000 },
+      { timestamp: 2000, open: 105, high: 115, low: 95, close: 110, volume: 1000 }
+    ]
+    
+    engine.loadMockData(candles)
+    const state = engine.getState()
+    
+    expect(state.candles.length).toBe(2)
+    expect(state.viewport).toBeDefined()
+    expect(state.viewport?.widthPx).toBe(800)
+    expect(state.viewport?.heightPx).toBe(600)
+  })
+
+  it('clears viewport when resetting data', () => {
+    const engine = new ChartEngine(canvas, { symbol: 'BTCUSDT', timeframe: '1m' })
+    const candles: Candle[] = [
+      { timestamp: 1000, open: 100, high: 110, low: 90, close: 105, volume: 1000 }
+    ]
+    
+    engine.loadMockData(candles)
+    engine.resetData()
+    const state = engine.getState()
+    
+    expect(state.candles.length).toBe(0)
+    expect(state.viewport).toBeUndefined()
   })
 })
 

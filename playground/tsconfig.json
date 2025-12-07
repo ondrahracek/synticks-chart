@@ -2,8 +2,11 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "moduleResolution": "bundler",
     "paths": {
-      "synticks-chart": ["../src"]
+      "synticks-chart": ["../src"],
+      "synticks-chart/vue": ["../src/vue.ts"],
+      "synticks-chart/*": ["../src/*"]
     },
     "jsx": "preserve"
   },

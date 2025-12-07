@@ -1,3 +1,8 @@
+import type { Candle } from './types'
+
+const DEFAULT_TIME_PADDING_PERCENT = 0.1
+const DEFAULT_TIME_PADDING_MS = 60000
+
 export interface Viewport {
   from: number
   to: number
@@ -51,6 +56,39 @@ export function zoomViewport(viewport: Viewport, factor: number, anchorTime: num
     ...viewport,
     from: anchorTime - halfSpan,
     to: anchorTime + halfSpan
+  }
+}
+
+export function createViewportFromCandles(
+  candles: Candle[],
+  widthPx: number,
+  heightPx: number
+): Viewport | null {
+  if (candles.length === 0) return null
+
+  const timestamps = candles.map(c => c.timestamp)
+  const minTime = Math.min(...timestamps)
+  const maxTime = Math.max(...timestamps)
+  const timeSpan = maxTime - minTime
+  const timePadding = timeSpan > 0 ? timeSpan * DEFAULT_TIME_PADDING_PERCENT : DEFAULT_TIME_PADDING_MS
+
+  return {
+    from: minTime - timePadding,
+    to: maxTime + timePadding,
+    widthPx,
+    heightPx
+  }
+}
+
+export function updateViewportDimensions(
+  viewport: Viewport,
+  widthPx: number,
+  heightPx: number
+): Viewport {
+  return {
+    ...viewport,
+    widthPx,
+    heightPx
   }
 }
 

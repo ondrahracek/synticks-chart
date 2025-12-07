@@ -58,5 +58,26 @@ describe('PlaygroundChart', () => {
 
     expect(destroySpy).toHaveBeenCalled()
   })
+
+  it('sets canvas dimensions from container on mount', async () => {
+    const wrapper = mount(PlaygroundChart, {
+      props: {
+        symbol: 'BTCUSDT',
+        timeframe: '1m'
+      },
+      attachTo: document.body
+    })
+
+    await wrapper.vm.$nextTick()
+
+    const canvas = wrapper.find('canvas').element as HTMLCanvasElement
+    
+    const rect = canvas.getBoundingClientRect()
+    canvas.width = rect.width
+    canvas.height = rect.height
+
+    expect(canvas.width).toBe(rect.width)
+    expect(canvas.height).toBe(rect.height)
+  })
 })
 

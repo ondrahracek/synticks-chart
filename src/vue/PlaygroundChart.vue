@@ -17,6 +17,10 @@ let engine: ChartEngine | null = null
 onMounted(() => {
   if (!canvasRef.value) return
   
+  const rect = canvasRef.value.getBoundingClientRect()
+  canvasRef.value.width = rect.width
+  canvasRef.value.height = rect.height
+  
   engine = new ChartEngine(canvasRef.value, {
     symbol: props.symbol,
     timeframe: props.timeframe
@@ -70,3 +74,11 @@ defineExpose({
 <template>
   <canvas ref="canvasRef" class="synticks-chart-canvas" />
 </template>
+
+<style scoped>
+.synticks-chart-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+</style>
