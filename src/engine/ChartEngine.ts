@@ -59,11 +59,13 @@ export class ChartEngine {
   }
 
   addIndicator(id: string, inputs: Record<string, unknown>): void {
-    // Indicator logic will be handled by registry
+    this.indicatorRegistry.register(id, inputs)
+    this.animationLoop.setTargetState(this.state)
   }
 
   removeIndicator(id: string): void {
-    // Indicator removal logic
+    this.indicatorRegistry.unregister(id)
+    this.animationLoop.setTargetState(this.state)
   }
 
   loadMockData(candles: Candle[]): void {

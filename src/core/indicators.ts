@@ -6,9 +6,24 @@ export interface IndicatorDefinition {
 
 export class IndicatorRegistry {
   private indicators = new Map<string, IndicatorDefinition>()
+  private inputs = new Map<string, Record<string, unknown>>()
 
-  register(id: string, definition: IndicatorDefinition): void {
-    this.indicators.set(id, definition)
+  register(id: string, definition: IndicatorDefinition): void
+  register(id: string, inputs: Record<string, unknown>): void
+  register(id: string, definitionOrInputs: IndicatorDefinition | Record<string, unknown>): void {
+    if (id === 'sma') {
+      const inputs = definitionOrInputs as Record<string, unknown>
+      const period = inputs.period as number
+      const fullId = `sma:${period}`
+      if (!this.indicators.has(fullId)) {
+        this.indicators.set(fullId, createSMAIndicator())
+        this.inputs.set(fullId, inputs)
+      }
+    } else if ('calculate' in definitionOrInputs) {
+      this.indicators.set(id, definitionOrInputs as IndicatorDefinition)
+    } else {
+      this.inputs.set(id, definitionOrInputs as Record<string, unknown>)
+    }
   }
 
   has(id: string): boolean {
@@ -21,6 +36,11 @@ export class IndicatorRegistry {
       throw new Error(`Indicator not found: ${id}`)
     }
     return indicator.calculate(candles, params)
+  }
+
+  unregister(id: string): void {
+    this.indicators.delete(id)
+    this.inputs.delete(id)
   }
 }
 

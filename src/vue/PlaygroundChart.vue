@@ -51,7 +51,9 @@ defineExpose({
   loadMockData: (candles: Candle[]) => engine?.loadMockData?.(candles),
   resetData: () => engine?.resetData?.(),
   appendMockCandle: (candle: Candle) => engine?.appendMockCandle?.(candle),
-  clearDrawings: () => engine?.clearDrawings?.()
+  clearDrawings: () => engine?.clearDrawings?.(),
+  addIndicator: (id: string, inputs: Record<string, unknown>) => engine?.addIndicator?.(id, inputs),
+  removeIndicator: (id: string) => engine?.removeIndicator?.(id)
 })
 </script>
 

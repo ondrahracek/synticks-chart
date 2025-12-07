@@ -86,6 +86,35 @@
         Clear drawings
       </button>
     </div>
+    <div class="indicators-section">
+      <label>
+        <input
+          data-test="indicator-sma-20"
+          type="checkbox"
+          :checked="indicators.sma20"
+          @change="emit('toggleIndicator', { type: 'sma', period: 20 })"
+        />
+        SMA(20)
+      </label>
+      <label>
+        <input
+          data-test="indicator-sma-50"
+          type="checkbox"
+          :checked="indicators.sma50"
+          @change="emit('toggleIndicator', { type: 'sma', period: 50 })"
+        />
+        SMA(50)
+      </label>
+      <label>
+        <input
+          data-test="indicator-sma-200"
+          type="checkbox"
+          :checked="indicators.sma200"
+          @change="emit('toggleIndicator', { type: 'sma', period: 200 })"
+        />
+        SMA(200)
+      </label>
+    </div>
   </div>
 </template>
 
@@ -97,6 +126,11 @@ defineProps<{
   timeframe: TimeframeId
   isPlaying: boolean
   activeTool: string
+  indicators: {
+    sma20: boolean
+    sma50: boolean
+    sma200: boolean
+  }
 }>()
 
 const emit = defineEmits<{
@@ -110,6 +144,7 @@ const emit = defineEmits<{
   (e: 'addRandomCandle'): void
   (e: 'setTool', mode: string): void
   (e: 'clearDrawings'): void
+  (e: 'toggleIndicator', payload: { type: string; period: number }): void
 }>()
 
 const timeframes: TimeframeId[] = ['1m', '5m', '15m', '1h', '1d']

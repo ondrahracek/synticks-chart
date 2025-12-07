@@ -9,6 +9,11 @@ const chartRef = ref<InstanceType<typeof PlaygroundChart> | null>(null)
 const { symbol, timeframe } = usePlaygroundState()
 const isPlaying = ref(false)
 const activeTool = ref<string>('pan')
+const indicators = ref({
+  sma20: false,
+  sma50: false,
+  sma200: false
+})
 
 function handlePlay() {
   chartRef.value?.play()
@@ -46,6 +51,17 @@ function handleSetTool(mode: string) {
 function handleClearDrawings() {
   chartRef.value?.clearDrawings?.()
 }
+
+function handleToggleIndicator(payload: { type: string; period: number }) {
+  const key = `sma${payload.period}` as 'sma20' | 'sma50' | 'sma200'
+  indicators.value[key] = !indicators.value[key]
+  
+  if (indicators.value[key]) {
+    chartRef.value?.addIndicator?.(payload.type, { period: payload.period })
+  } else {
+    chartRef.value?.removeIndicator?.(`${payload.type}:${payload.period}`)
+  }
+}
 </script>
 
 <template>
@@ -56,6 +72,7 @@ function handleClearDrawings() {
         :timeframe="timeframe"
         :is-playing="isPlaying"
         :active-tool="activeTool"
+        :indicators="indicators"
         @update:symbol="symbol = $event"
         @update:timeframe="timeframe = $event"
         @play="handlePlay"
@@ -66,6 +83,7 @@ function handleClearDrawings() {
         @add-random-candle="handleAddRandomCandle"
         @set-tool="handleSetTool"
         @clear-drawings="handleClearDrawings"
+        @toggle-indicator="handleToggleIndicator"
       />
       <div style="flex:1; min-height:0; padding:16px;">
         <PlaygroundChart
