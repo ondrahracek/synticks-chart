@@ -8,4 +8,3 @@ import { PlaygroundChart } from 'synticks-chart/vue'
     <PlaygroundChart symbol="BTCUSDT" timeframe="1m" />
   </div>
 </template>
-
