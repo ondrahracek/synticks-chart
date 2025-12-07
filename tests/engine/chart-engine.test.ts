@@ -68,6 +68,42 @@ describe('ChartEngine', () => {
     expect(engine).toBeDefined()
   })
 
+  it('stores indicator data in state', () => {
+    const engine = new ChartEngine(canvas, { symbol: 'BTCUSDT', timeframe: '1m' })
+    const candles: Candle[] = [
+      { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+      { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 },
+      { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 }
+    ]
+    engine.loadMockData(candles)
+    
+    engine.addIndicator('sma', { period: 2 })
+    
+    const state = engine.getState()
+    expect(state.indicators).toBeDefined()
+    expect(Array.isArray(state.indicators)).toBe(true)
+  })
+
+  it('recalculates indicators when candles are added', () => {
+    const engine = new ChartEngine(canvas, { symbol: 'BTCUSDT', timeframe: '1m' })
+    const candles: Candle[] = [
+      { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+      { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 }
+    ]
+    engine.loadMockData(candles)
+    engine.addIndicator('sma', { period: 2 })
+    
+    const stateBefore = engine.getState()
+    const indicatorBefore = stateBefore.indicators?.[0]
+    expect(indicatorBefore?.values.length).toBe(1)
+    
+    engine.appendMockCandle({ timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 })
+    
+    const stateAfter = engine.getState()
+    const indicatorAfter = stateAfter.indicators?.[0]
+    expect(indicatorAfter?.values.length).toBe(2)
+  })
+
   it('removes indicator', () => {
     const engine = new ChartEngine(canvas, { symbol: 'BTCUSDT', timeframe: '1m' })
     

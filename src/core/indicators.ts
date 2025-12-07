@@ -46,6 +46,14 @@ export class IndicatorRegistry {
   getActiveCount(): number {
     return this.indicators.size
   }
+
+  getAllActiveIds(): string[] {
+    return Array.from(this.indicators.keys())
+  }
+
+  getInputs(id: string): Record<string, unknown> | undefined {
+    return this.inputs.get(id)
+  }
 }
 
 export function createSMAIndicator(): IndicatorDefinition {

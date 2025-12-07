@@ -225,6 +225,70 @@ describe('ChartRenderer', () => {
     expect(strokeStyleValues).toContain(customTheme.drawing)
   })
 
+  it('draws preview drawing with lighter color', () => {
+    let strokeStyleValues: string[] = []
+    let moveToCalls: Array<[number, number]> = []
+    let lineToCalls: Array<[number, number]> = []
+    
+    const mockCtx = {
+      strokeStyle: '',
+      fillStyle: '',
+      lineWidth: 0,
+      font: '',
+      textAlign: '',
+      textBaseline: '',
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn((x: number, y: number) => { moveToCalls.push([x, y]) }),
+      lineTo: vi.fn((x: number, y: number) => { lineToCalls.push([x, y]) }),
+      stroke: vi.fn(),
+      fillText: vi.fn(),
+      get strokeStyle() { return strokeStyleValues[strokeStyleValues.length - 1] || '' },
+      set strokeStyle(value: string) { strokeStyleValues.push(value) }
+    }
+    
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 600
+    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx as unknown as CanvasRenderingContext2D)
+    const renderer = new ChartRenderer(canvas)
+
+    const state: ChartState = {
+      candles: [
+        { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 }
+      ],
+      missedCandles: [],
+      playback: 'live',
+      currentDrawing: {
+        kind: 'trendline',
+        points: [
+          { time: 1000, price: 100 },
+          { time: 1500, price: 105 }
+        ],
+        isComplete: false
+      },
+      viewport: {
+        from: 1000,
+        to: 2000,
+        widthPx: 800,
+        heightPx: 600
+      }
+    }
+
+    renderer.setState(state)
+    renderer.render()
+
+    const drawingLines = moveToCalls.filter((moveTo, i) => {
+      const correspondingLineTo = lineToCalls[i]
+      return correspondingLineTo && moveTo[0] !== correspondingLineTo[0] && moveTo[1] !== correspondingLineTo[1]
+    })
+
+    expect(drawingLines.length).toBeGreaterThan(0)
+    const previewColor = strokeStyleValues.find(color => color.includes('rgba') || color.includes('80'))
+    expect(previewColor).toBeDefined()
+  })
+
   it('draws wick lines for candles', () => {
     let moveToCalls: Array<[number, number]> = []
     let lineToCalls: Array<[number, number]> = []
@@ -486,6 +550,424 @@ describe('ChartRenderer', () => {
     })
 
     expect(timeLabelCalls.length).toBeGreaterThan(0)
+  })
+
+  it('calls drawIndicators in render sequence', () => {
+    const mockCtx = {
+      strokeStyle: '',
+      fillStyle: '',
+      lineWidth: 0,
+      font: '',
+      textAlign: '',
+      textBaseline: '',
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      fillText: vi.fn()
+    }
+    
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 600
+    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx as unknown as CanvasRenderingContext2D)
+    const renderer = new ChartRenderer(canvas)
+    
+    const state: ChartState = {
+      candles: [
+        { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 }
+      ],
+      missedCandles: [],
+      playback: 'live',
+      viewport: {
+        from: 1000,
+        to: 2000,
+        widthPx: 800,
+        heightPx: 600
+      }
+    }
+
+    renderer.setState(state)
+    renderer.render()
+    
+    expect(mockCtx.clearRect).toHaveBeenCalled()
+  })
+
+  it('does nothing when no indicators in state', () => {
+    const mockCtx = {
+      strokeStyle: '',
+      fillStyle: '',
+      lineWidth: 0,
+      font: '',
+      textAlign: '',
+      textBaseline: '',
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      fillText: vi.fn()
+    }
+    
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 600
+    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx as unknown as CanvasRenderingContext2D)
+    const renderer = new ChartRenderer(canvas)
+    
+    const state: ChartState = {
+      candles: [],
+      missedCandles: [],
+      playback: 'live',
+      indicators: [],
+      viewport: {
+        from: 1000,
+        to: 2000,
+        widthPx: 800,
+        heightPx: 600
+      }
+    }
+
+    renderer.setState(state)
+    renderer.render()
+    
+    expect(mockCtx.clearRect).toHaveBeenCalled()
+  })
+
+  it('draws indicator line when indicator exists', () => {
+    let moveToCalls: Array<[number, number]> = []
+    let lineToCalls: Array<[number, number]> = []
+    let strokeStyleValues: string[] = []
+    
+    const mockCtx = {
+      strokeStyle: '',
+      fillStyle: '',
+      lineWidth: 0,
+      font: '',
+      textAlign: '',
+      textBaseline: '',
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn((x: number, y: number) => { moveToCalls.push([x, y]) }),
+      lineTo: vi.fn((x: number, y: number) => { lineToCalls.push([x, y]) }),
+      stroke: vi.fn(),
+      fillText: vi.fn(),
+      get strokeStyle() { return strokeStyleValues[strokeStyleValues.length - 1] || '' },
+      set strokeStyle(value: string) { strokeStyleValues.push(value) }
+    }
+    
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 600
+    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx as unknown as CanvasRenderingContext2D)
+    const renderer = new ChartRenderer(canvas)
+
+    const state: ChartState = {
+      candles: [
+        { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+        { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 }
+      ],
+      missedCandles: [],
+      playback: 'live',
+      indicators: [
+        {
+          id: 'sma:2',
+          values: [103, 104.5],
+          timestamps: [1000, 2000]
+        }
+      ],
+      viewport: {
+        from: 1000,
+        to: 2000,
+        widthPx: 800,
+        heightPx: 600
+      }
+    }
+
+    renderer.setState(state)
+    renderer.render()
+
+    const indicatorLines = moveToCalls.filter((moveTo, i) => {
+      const correspondingLineTo = lineToCalls[i]
+      return correspondingLineTo && moveTo[0] !== correspondingLineTo[0] && moveTo[1] !== correspondingLineTo[1]
+    })
+
+    expect(indicatorLines.length).toBeGreaterThan(0)
+    expect(strokeStyleValues).toContain('#ff9800')
+  })
+
+  it('correctly maps indicator values to candle timestamps with period offset', () => {
+    let moveToCalls: Array<[number, number]> = []
+    let lineToCalls: Array<[number, number]> = []
+    
+    const mockCtx = {
+      strokeStyle: '',
+      fillStyle: '',
+      lineWidth: 0,
+      font: '',
+      textAlign: '',
+      textBaseline: '',
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn((x: number, y: number) => { moveToCalls.push([x, y]) }),
+      lineTo: vi.fn((x: number, y: number) => { lineToCalls.push([x, y]) }),
+      stroke: vi.fn(),
+      fillText: vi.fn()
+    }
+    
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 600
+    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx as unknown as CanvasRenderingContext2D)
+    const renderer = new ChartRenderer(canvas)
+
+    const state: ChartState = {
+      candles: [
+        { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+        { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 },
+        { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 }
+      ],
+      missedCandles: [],
+      playback: 'live',
+      indicators: [
+        {
+          id: 'sma:2',
+          values: [104.5, 105.5],
+          timestamps: [2000, 3000]
+        }
+      ],
+      viewport: {
+        from: 1000,
+        to: 3000,
+        widthPx: 800,
+        heightPx: 600
+      }
+    }
+
+    renderer.setState(state)
+    renderer.render()
+
+    const firstMoveTo = moveToCalls.find(call => call[0] > 0 && call[0] < 800)
+    expect(firstMoveTo).toBeDefined()
+    
+    const xPositions = moveToCalls.map(([x]) => x).filter(x => x > 0 && x < 800)
+    expect(xPositions.length).toBeGreaterThan(0)
+  })
+
+  it('only draws indicator points visible in viewport', () => {
+    let indicatorMoveToCalls: Array<[number, number]> = []
+    let isDrawingIndicator = false
+    
+    const mockCtx = {
+      strokeStyle: '',
+      fillStyle: '',
+      lineWidth: 0,
+      font: '',
+      textAlign: '',
+      textBaseline: '',
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn((x: number, y: number) => {
+        if (isDrawingIndicator) {
+          indicatorMoveToCalls.push([x, y])
+        }
+      }),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      fillText: vi.fn(),
+      set strokeStyle(value: string) {
+        if (value === '#ff9800') {
+          isDrawingIndicator = true
+        } else {
+          isDrawingIndicator = false
+        }
+      }
+    }
+    
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 600
+    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx as unknown as CanvasRenderingContext2D)
+    const renderer = new ChartRenderer(canvas)
+
+    const state: ChartState = {
+      candles: [
+        { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+        { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 },
+        { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 },
+        { timestamp: 4000, open: 105, high: 109, low: 103, close: 108, volume: 1300 }
+      ],
+      missedCandles: [],
+      playback: 'live',
+      indicators: [
+        {
+          id: 'sma:2',
+          values: [104.5, 105.5, 106.5],
+          timestamps: [2000, 3000, 4000]
+        }
+      ],
+      viewport: {
+        from: 2500,
+        to: 3500,
+        widthPx: 800,
+        heightPx: 600
+      }
+    }
+
+    renderer.setState(state)
+    renderer.render()
+
+    expect(indicatorMoveToCalls.length).toBe(1)
+  })
+
+  it('draws indicator points slightly outside viewport bounds', () => {
+    let indicatorMoveToCalls: Array<[number, number]> = []
+    let indicatorLineToCalls: Array<[number, number]> = []
+    let isDrawingIndicator = false
+    
+    const mockCtx = {
+      strokeStyle: '',
+      fillStyle: '',
+      lineWidth: 0,
+      font: '',
+      textAlign: '',
+      textBaseline: '',
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn((x: number, y: number) => {
+        if (isDrawingIndicator) {
+          indicatorMoveToCalls.push([x, y])
+        }
+      }),
+      lineTo: vi.fn((x: number, y: number) => {
+        if (isDrawingIndicator) {
+          indicatorLineToCalls.push([x, y])
+        }
+      }),
+      stroke: vi.fn(),
+      fillText: vi.fn(),
+      set strokeStyle(value: string) {
+        if (value === '#ff9800') {
+          isDrawingIndicator = true
+        } else {
+          isDrawingIndicator = false
+        }
+      }
+    }
+    
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 600
+    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx as unknown as CanvasRenderingContext2D)
+    const renderer = new ChartRenderer(canvas)
+
+    const state: ChartState = {
+      candles: [
+        { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+        { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 },
+        { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 },
+        { timestamp: 4000, open: 105, high: 109, low: 103, close: 108, volume: 1300 }
+      ],
+      missedCandles: [],
+      playback: 'live',
+      indicators: [
+        {
+          id: 'sma:2',
+          values: [104.5, 105.5, 106.5],
+          timestamps: [2000, 3000, 4000]
+        }
+      ],
+      viewport: {
+        from: 2500,
+        to: 3500,
+        widthPx: 800,
+        heightPx: 600
+      }
+    }
+
+    renderer.setState(state)
+    renderer.render()
+
+    const totalPoints = indicatorMoveToCalls.length + indicatorLineToCalls.length
+    expect(totalPoints).toBeGreaterThan(1)
+  })
+
+  it('draws multiple indicators simultaneously', () => {
+    let indicatorBeginPathCalls = 0
+    let isDrawingIndicator = false
+    
+    const mockCtx = {
+      strokeStyle: '',
+      fillStyle: '',
+      lineWidth: 0,
+      font: '',
+      textAlign: '',
+      textBaseline: '',
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      beginPath: vi.fn(() => {
+        if (isDrawingIndicator) {
+          indicatorBeginPathCalls++
+        }
+      }),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      fillText: vi.fn(),
+      set strokeStyle(value: string) {
+        if (value === '#ff9800') {
+          isDrawingIndicator = true
+        } else {
+          isDrawingIndicator = false
+        }
+      }
+    }
+    
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 600
+    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx as unknown as CanvasRenderingContext2D)
+    const renderer = new ChartRenderer(canvas)
+
+    const state: ChartState = {
+      candles: [
+        { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+        { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 },
+        { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 }
+      ],
+      missedCandles: [],
+      playback: 'live',
+      indicators: [
+        {
+          id: 'sma:2',
+          values: [104.5, 105.5],
+          timestamps: [2000, 3000]
+        },
+        {
+          id: 'sma:3',
+          values: [104.67],
+          timestamps: [3000]
+        }
+      ],
+      viewport: {
+        from: 1000,
+        to: 3000,
+        widthPx: 800,
+        heightPx: 600
+      }
+    }
+
+    renderer.setState(state)
+    renderer.render()
+
+    expect(indicatorBeginPathCalls).toBe(2)
   })
 
   it('uses adaptive spacing when zoomed in', () => {

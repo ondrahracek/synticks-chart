@@ -144,5 +144,46 @@ describe('InputController', () => {
     expect(drawingsCall![0].drawings).toHaveLength(1)
     expect(drawingsCall![0].drawings![0].kind).toBe('trendline')
   })
+
+  it('updates currentDrawing in state during pointer move when drawing', () => {
+    const state: ChartState = {
+      ...createChartState(),
+      viewport: {
+        from: 1000,
+        to: 2000,
+        widthPx: 800,
+        heightPx: 600
+      },
+      interactionMode: 'draw-trendline',
+      candles: [
+        { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 }
+      ],
+      drawings: []
+    }
+
+    getState = vi.fn(() => state)
+    controller = new InputController(canvas, getState, updateState)
+
+    const pointerDown = new PointerEvent('pointerdown', {
+      clientX: 100,
+      clientY: 200,
+      pointerId: 1
+    })
+    canvas.dispatchEvent(pointerDown)
+
+    const pointerMove = new PointerEvent('pointermove', {
+      clientX: 300,
+      clientY: 400,
+      pointerId: 1
+    })
+    canvas.dispatchEvent(pointerMove)
+
+    expect(updateState).toHaveBeenCalled()
+    const calls = updateState.mock.calls
+    const currentDrawingCall = calls.find(call => call[0].currentDrawing !== undefined)
+    expect(currentDrawingCall).toBeDefined()
+    expect(currentDrawingCall![0].currentDrawing?.kind).toBe('trendline')
+    expect(currentDrawingCall![0].currentDrawing?.points.length).toBe(2)
+  })
 })
 

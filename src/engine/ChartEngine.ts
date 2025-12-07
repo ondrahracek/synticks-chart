@@ -67,11 +67,43 @@ export class ChartEngine {
 
   addIndicator(id: string, inputs: Record<string, unknown>): void {
     this.indicatorRegistry.register(id, inputs)
+    this.recalculateAllIndicators()
     this.animationLoop.setTargetState(this.state)
+  }
+
+  private recalculateAllIndicators(): void {
+    if (this.state.candles.length === 0) {
+      this.state.indicators = []
+      return
+    }
+
+    const indicators: import('../core/state').IndicatorData[] = []
+    const activeIds = this.indicatorRegistry.getAllActiveIds()
+    
+    for (const fullId of activeIds) {
+      const inputs = this.indicatorRegistry.getInputs(fullId) || {}
+      const period = inputs.period as number
+      const values = this.indicatorRegistry.calculate(fullId, this.state.candles, inputs)
+      
+      const timestamps: number[] = []
+      const startIndex = period - 1
+      for (let i = startIndex; i < this.state.candles.length; i++) {
+        timestamps.push(this.state.candles[i].timestamp)
+      }
+      
+      indicators.push({
+        id: fullId,
+        values,
+        timestamps
+      })
+    }
+    
+    this.state.indicators = indicators
   }
 
   removeIndicator(id: string): void {
     this.indicatorRegistry.unregister(id)
+    this.recalculateAllIndicators()
     this.animationLoop.setTargetState(this.state)
   }
 
@@ -94,6 +126,7 @@ export class ChartEngine {
       }
     }
     
+    this.recalculateAllIndicators()
     this.animationLoop.setTargetState(this.state)
   }
 
@@ -106,6 +139,7 @@ export class ChartEngine {
 
   appendMockCandle(candle: Candle): void {
     this.state.candles.push(candle)
+    this.recalculateAllIndicators()
     this.animationLoop.setTargetState(this.state)
   }
 
@@ -130,6 +164,7 @@ export class ChartEngine {
     playback: PlaybackMode | 'live'
     candles: Candle[]
     drawings?: DrawingShape[]
+    indicators?: import('../core/state').IndicatorData[]
     indicatorsCount: number
     viewport?: Viewport
   } {
@@ -139,6 +174,7 @@ export class ChartEngine {
       playback: this.state.playback,
       candles: this.state.candles,
       drawings: this.state.drawings,
+      indicators: this.state.indicators,
       indicatorsCount: this.indicatorRegistry.getActiveCount(),
       viewport: this.state.viewport
     }

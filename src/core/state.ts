@@ -10,6 +10,12 @@ export interface Crosshair {
 
 export type InteractionMode = 'pan' | 'draw-trendline' | 'draw-horizontal'
 
+export interface IndicatorData {
+  id: string
+  values: number[]
+  timestamps: number[]
+}
+
 export interface ChartState {
   candles: Candle[]
   missedCandles: Candle[]
@@ -17,6 +23,8 @@ export interface ChartState {
   viewport?: Viewport
   crosshair?: Crosshair
   drawings?: DrawingShape[]
+  currentDrawing?: DrawingShape
+  indicators?: IndicatorData[]
   interactionMode?: InteractionMode
   theme?: Theme
 }

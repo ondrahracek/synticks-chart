@@ -44,6 +44,7 @@ export class ChartRenderer {
     this.drawBackground(ctx)
     this.drawGrid(ctx)
     this.drawCandles(ctx)
+    this.drawIndicators(ctx)
     this.drawDrawings(ctx)
     this.drawAxes(ctx)
   }
@@ -145,17 +146,69 @@ export class ChartRenderer {
     }
   }
 
-  private drawDrawings(ctx: CanvasRenderingContext2D): void {
+  private drawIndicators(ctx: CanvasRenderingContext2D): void {
     if (!this.state || !this.viewport) return
 
-    const drawings = this.state.drawings || []
-    if (drawings.length === 0) return
+    const indicators = this.state.indicators || []
+    if (indicators.length === 0) return
 
     const candles = this.state.candles || []
     const minPrice = candles.length > 0 ? Math.min(...candles.map(c => c.low)) : 0
     const maxPrice = candles.length > 0 ? Math.max(...candles.map(c => c.high)) : 100
 
-    ctx.strokeStyle = this.getThemeColor('drawing', '#2196F3')
+    ctx.strokeStyle = this.getThemeColor('indicator', '#ff9800')
+    ctx.lineWidth = 2
+
+    for (const indicator of indicators) {
+      if (indicator.values.length === 0) continue
+
+      const visiblePoints: Array<{ x: number; y: number }> = []
+      const timeSpan = this.viewport.to - this.viewport.from
+      
+      let padding = timeSpan * 0.5
+      if (indicator.timestamps.length > 1) {
+        const intervals: number[] = []
+        for (let i = 1; i < indicator.timestamps.length; i++) {
+          intervals.push(indicator.timestamps[i] - indicator.timestamps[i - 1])
+        }
+        const avgInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length
+        padding = Math.max(padding, avgInterval)
+      }
+      
+      const paddedFrom = this.viewport.from - padding
+      const paddedTo = this.viewport.to + padding
+
+      for (let i = 0; i < indicator.values.length; i++) {
+        const timestamp = indicator.timestamps[i]
+        if (timestamp >= paddedFrom && timestamp <= paddedTo) {
+          const x = timeToX(timestamp, this.viewport)
+          const y = priceToY(indicator.values[i], this.viewport, minPrice, maxPrice)
+          visiblePoints.push({ x, y })
+        }
+      }
+
+      if (visiblePoints.length === 0) continue
+
+      ctx.beginPath()
+      ctx.moveTo(visiblePoints[0].x, visiblePoints[0].y)
+      for (let i = 1; i < visiblePoints.length; i++) {
+        ctx.lineTo(visiblePoints[i].x, visiblePoints[i].y)
+      }
+      ctx.stroke()
+    }
+  }
+
+  private drawDrawings(ctx: CanvasRenderingContext2D): void {
+    if (!this.state || !this.viewport) return
+
+    const candles = this.state.candles || []
+    const minPrice = candles.length > 0 ? Math.min(...candles.map(c => c.low)) : 0
+    const maxPrice = candles.length > 0 ? Math.max(...candles.map(c => c.high)) : 100
+
+    const drawings = this.state.drawings || []
+    const baseColor = this.getThemeColor('drawing', '#2196F3')
+    
+    ctx.strokeStyle = baseColor
     ctx.lineWidth = 2
 
     for (const drawing of drawings) {
@@ -171,6 +224,36 @@ export class ChartRenderer {
       ctx.lineTo(x2, y2)
       ctx.stroke()
     }
+
+    if (this.state.currentDrawing && this.state.currentDrawing.points.length >= 2) {
+      const x1 = timeToX(this.state.currentDrawing.points[0].time, this.viewport)
+      const y1 = priceToY(this.state.currentDrawing.points[0].price, this.viewport, minPrice, maxPrice)
+      const x2 = timeToX(this.state.currentDrawing.points[this.state.currentDrawing.points.length - 1].time, this.viewport)
+      const y2 = priceToY(this.state.currentDrawing.points[this.state.currentDrawing.points.length - 1].price, this.viewport, minPrice, maxPrice)
+
+      ctx.strokeStyle = this.convertToRgba(baseColor, 0.5)
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(x1, y1)
+      ctx.lineTo(x2, y2)
+      ctx.stroke()
+    }
+  }
+
+  private convertToRgba(hex: string, alpha: number): string {
+    if (!hex.startsWith('#')) {
+      return hex
+    }
+    
+    const hexColor = hex.slice(1)
+    if (hexColor.length === 6) {
+      const r = parseInt(hexColor.slice(0, 2), 16)
+      const g = parseInt(hexColor.slice(2, 4), 16)
+      const b = parseInt(hexColor.slice(4, 6), 16)
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`
+    }
+    
+    return hex
   }
 
   private drawAxes(ctx: CanvasRenderingContext2D): void {

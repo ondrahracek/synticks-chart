@@ -60,6 +60,18 @@ export class InputController {
       const newViewport = panViewport(state.viewport, deltaX)
       this.updateState({ viewport: newViewport })
       this.lastX = e.clientX
+    } else if (this.currentDrawing && (mode === 'draw-trendline' || mode === 'draw-horizontal')) {
+      const endPoint = this.screenToPoint(e.clientX, e.clientY, state)
+      if (endPoint && state.viewport) {
+        let shape = startDrawing(this.currentDrawing.kind, this.currentDrawing.startPoint)
+        
+        if (this.currentDrawing.kind === 'horizontal') {
+          endPoint.price = this.currentDrawing.startPoint.price
+        }
+        
+        shape = updateDrawing(shape, endPoint)
+        this.updateState({ currentDrawing: shape })
+      }
     }
   }
 
@@ -87,7 +99,8 @@ export class InputController {
 
         const drawings = state.drawings || []
         this.updateState({
-          drawings: [...drawings, shape]
+          drawings: [...drawings, shape],
+          currentDrawing: undefined
         })
         this.currentDrawing = null
       }
