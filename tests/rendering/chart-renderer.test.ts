@@ -212,5 +212,54 @@ describe('ChartRenderer', () => {
 
     expect(strokeStyleValues).toContain(customTheme.drawing)
   })
+
+  it('draws wick lines for candles', () => {
+    let moveToCalls: Array<[number, number]> = []
+    let lineToCalls: Array<[number, number]> = []
+    let strokeCallCount = 0
+    
+    const mockCtx = {
+      strokeStyle: '',
+      fillStyle: '',
+      lineWidth: 0,
+      font: '',
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn((x: number, y: number) => { moveToCalls.push([x, y]) }),
+      lineTo: vi.fn((x: number, y: number) => { lineToCalls.push([x, y]) }),
+      stroke: vi.fn(() => { strokeCallCount++ })
+    }
+    
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 600
+    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx as unknown as CanvasRenderingContext2D)
+    const renderer = new ChartRenderer(canvas)
+
+    const state: ChartState = {
+      candles: [
+        { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 }
+      ],
+      missedCandles: [],
+      playback: 'live',
+      viewport: {
+        from: 1000,
+        to: 2000,
+        widthPx: 800,
+        heightPx: 600
+      }
+    }
+
+    renderer.setState(state)
+    renderer.render()
+
+    const verticalLines = moveToCalls.filter((moveTo, i) => {
+      const correspondingLineTo = lineToCalls[i]
+      return correspondingLineTo && moveTo[0] === correspondingLineTo[0] && moveTo[1] !== correspondingLineTo[1]
+    })
+
+    expect(verticalLines.length).toBeGreaterThan(0)
+  })
 })
 

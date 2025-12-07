@@ -155,3 +155,20 @@ export function zoomViewportWithBounds(
   return clampViewportToRange(zoomed, minTime, maxTime)
 }
 
+export function filterCandlesByViewport(
+  candles: Candle[],
+  viewport: Viewport,
+  paddingPercent: number = DEFAULT_TIME_PADDING_PERCENT
+): Candle[] {
+  if (candles.length === 0) return []
+  
+  const timeSpan = viewport.to - viewport.from
+  const padding = timeSpan > 0 ? timeSpan * paddingPercent : DEFAULT_TIME_PADDING_MS
+  const minTime = viewport.from - padding
+  const maxTime = viewport.to + padding
+  
+  return candles.filter(candle => 
+    candle.timestamp >= minTime && candle.timestamp <= maxTime
+  )
+}
+

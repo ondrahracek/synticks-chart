@@ -1,6 +1,6 @@
 import type { Candle } from '../core/types'
 import type { Viewport } from '../core/viewport'
-import { timeToX, priceToY } from '../core/viewport'
+import { timeToX, priceToY, filterCandlesByViewport } from '../core/viewport'
 
 export interface CandleRect {
   x: number
@@ -8,6 +8,8 @@ export interface CandleRect {
   w: number
   h: number
   isUp: boolean
+  highY: number
+  lowY: number
 }
 
 export function computeCandleRects(
@@ -20,12 +22,30 @@ export function computeCandleRects(
     return []
   }
 
-  const candleWidth = Math.max(1, viewport.widthPx / candles.length * 0.8)
+  const visibleCandles = filterCandlesByViewport(candles, viewport)
+  if (visibleCandles.length === 0) {
+    return []
+  }
+
+  const timeSpan = viewport.to - viewport.from
+  
+  let candleWidth: number
+  if (visibleCandles.length === 1) {
+    candleWidth = Math.max(1, viewport.widthPx * 0.8)
+  } else {
+    const timeIntervals: number[] = []
+    for (let i = 1; i < visibleCandles.length; i++) {
+      timeIntervals.push(visibleCandles[i].timestamp - visibleCandles[i - 1].timestamp)
+    }
+    const avgTimeInterval = timeIntervals.reduce((sum, interval) => sum + interval, 0) / timeIntervals.length
+    candleWidth = Math.max(1, (avgTimeInterval / timeSpan) * viewport.widthPx * 0.8)
+  }
+
   const result: CandleRect[] = []
 
-  for (const candle of candles) {
+  for (const candle of visibleCandles) {
     const centerX = timeToX(candle.timestamp, viewport)
-    const x = Math.max(0, centerX - candleWidth / 2)
+    const x = centerX - candleWidth / 2
     const highY = priceToY(candle.high, viewport, minPrice, maxPrice)
     const lowY = priceToY(candle.low, viewport, minPrice, maxPrice)
     const openY = priceToY(candle.open, viewport, minPrice, maxPrice)
@@ -40,7 +60,9 @@ export function computeCandleRects(
       y: bodyTop,
       w: candleWidth,
       h: bodyHeight,
-      isUp: candle.close > candle.open
+      isUp: candle.close > candle.open,
+      highY,
+      lowY
     })
   }
 

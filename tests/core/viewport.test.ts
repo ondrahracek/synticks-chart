@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { timeToX, xToTime, priceToY, yToPrice, panViewport, zoomViewport, createViewportFromCandles, updateViewportDimensions, getDataTimeRange, clampViewportToRange, zoomViewportWithBounds } from '../../src/core/viewport'
+import { timeToX, xToTime, priceToY, yToPrice, panViewport, zoomViewport, createViewportFromCandles, updateViewportDimensions, getDataTimeRange, clampViewportToRange, zoomViewportWithBounds, filterCandlesByViewport } from '../../src/core/viewport'
 import type { Viewport } from '../../src/core/viewport'
 import type { Candle } from '../../src/core/types'
 
@@ -303,6 +303,46 @@ describe('zoomViewportWithBounds', () => {
     expect(newSpan).toBeGreaterThan(originalSpan)
     expect(result.from).toBeGreaterThanOrEqual(500)
     expect(result.to).toBeLessThanOrEqual(3000)
+  })
+})
+
+describe('filterCandlesByViewport', () => {
+  it('filters out candles before viewport', () => {
+    const candles: Candle[] = [
+      { timestamp: 500, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+      { timestamp: 1500, open: 103, high: 107, low: 102, close: 106, volume: 1200 }
+    ]
+    
+    const viewport: Viewport = {
+      from: 1000,
+      to: 2000,
+      widthPx: 800,
+      heightPx: 600
+    }
+    
+    const result = filterCandlesByViewport(candles, viewport)
+    
+    expect(result).toHaveLength(1)
+    expect(result[0].timestamp).toBe(1500)
+  })
+
+  it('filters out candles after viewport', () => {
+    const candles: Candle[] = [
+      { timestamp: 1500, open: 103, high: 107, low: 102, close: 106, volume: 1200 },
+      { timestamp: 2500, open: 100, high: 105, low: 99, close: 103, volume: 1000 }
+    ]
+    
+    const viewport: Viewport = {
+      from: 1000,
+      to: 2000,
+      widthPx: 800,
+      heightPx: 600
+    }
+    
+    const result = filterCandlesByViewport(candles, viewport)
+    
+    expect(result).toHaveLength(1)
+    expect(result[0].timestamp).toBe(1500)
   })
 })
 

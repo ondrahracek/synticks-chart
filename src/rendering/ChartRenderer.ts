@@ -99,6 +99,15 @@ export class ChartRenderer {
     const candleDownColor = this.getThemeColor('candleDown', '#ef5350')
 
     for (const rect of rects) {
+      const centerX = rect.x + rect.w / 2
+      
+      ctx.strokeStyle = rect.isUp ? candleUpColor : candleDownColor
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(centerX, rect.lowY)
+      ctx.lineTo(centerX, rect.highY)
+      ctx.stroke()
+      
       ctx.fillStyle = rect.isUp ? candleUpColor : candleDownColor
       ctx.fillRect(rect.x, rect.y, rect.w, rect.h)
     }
