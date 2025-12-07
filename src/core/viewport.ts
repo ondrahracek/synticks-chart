@@ -92,3 +92,66 @@ export function updateViewportDimensions(
   }
 }
 
+export function getDataTimeRange(
+  candles: Candle[],
+  paddingPercent: number = DEFAULT_TIME_PADDING_PERCENT
+): { minTime: number; maxTime: number } | null {
+  if (candles.length === 0) return null
+  
+  const timestamps = candles.map(c => c.timestamp)
+  const minTime = Math.min(...timestamps)
+  const maxTime = Math.max(...timestamps)
+  const timeSpan = maxTime - minTime
+  const timePadding = timeSpan > 0 
+    ? timeSpan * paddingPercent 
+    : DEFAULT_TIME_PADDING_MS
+  
+  return {
+    minTime: minTime - timePadding,
+    maxTime: maxTime + timePadding
+  }
+}
+
+export function clampViewportToRange(
+  viewport: Viewport,
+  minTime: number,
+  maxTime: number
+): Viewport {
+  const timeSpan = viewport.to - viewport.from
+  const dataSpan = maxTime - minTime
+  
+  if (timeSpan >= dataSpan) {
+    return {
+      ...viewport,
+      from: minTime,
+      to: maxTime
+    }
+  }
+  
+  let from = Math.max(viewport.from, minTime)
+  let to = from + timeSpan
+  
+  if (to > maxTime) {
+    to = maxTime
+    from = to - timeSpan
+    from = Math.max(from, minTime)
+  }
+  
+  return {
+    ...viewport,
+    from,
+    to
+  }
+}
+
+export function zoomViewportWithBounds(
+  viewport: Viewport,
+  factor: number,
+  anchorTime: number,
+  minTime: number,
+  maxTime: number
+): Viewport {
+  const zoomed = zoomViewport(viewport, factor, anchorTime)
+  return clampViewportToRange(zoomed, minTime, maxTime)
+}
+

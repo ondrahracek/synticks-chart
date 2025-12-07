@@ -1,5 +1,5 @@
 import type { ChartState } from '../core/state'
-import { panViewport, zoomViewport, xToTime, yToPrice } from '../core/viewport'
+import { panViewport, zoomViewport, zoomViewportWithBounds, xToTime, yToPrice, getDataTimeRange } from '../core/viewport'
 import { startDrawing, updateDrawing, finishDrawing } from '../core/drawings'
 
 export class InputController {
@@ -104,8 +104,23 @@ export class InputController {
     const anchorTime = xToTime(offsetX, state.viewport)
 
     const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9
-    const newViewport = zoomViewport(state.viewport, zoomFactor, anchorTime)
-    this.updateState({ viewport: newViewport })
+    
+    const candles = state.candles || []
+    const dataRange = getDataTimeRange(candles)
+    
+    if (dataRange) {
+      const newViewport = zoomViewportWithBounds(
+        state.viewport,
+        zoomFactor,
+        anchorTime,
+        dataRange.minTime,
+        dataRange.maxTime
+      )
+      this.updateState({ viewport: newViewport })
+    } else {
+      const newViewport = zoomViewport(state.viewport, zoomFactor, anchorTime)
+      this.updateState({ viewport: newViewport })
+    }
   }
 
   private screenToPoint(clientX: number, clientY: number, state: ChartState): { time: number; price: number } | null {
@@ -175,8 +190,23 @@ export class InputController {
         const rect = this.canvas.getBoundingClientRect()
         const offsetX = centerX - rect.left
         const anchorTime = xToTime(offsetX, state.viewport)
-        const newViewport = zoomViewport(state.viewport, scale, anchorTime)
-        this.updateState({ viewport: newViewport })
+        
+        const candles = state.candles || []
+        const dataRange = getDataTimeRange(candles)
+        
+        if (dataRange) {
+          const newViewport = zoomViewportWithBounds(
+            state.viewport,
+            scale,
+            anchorTime,
+            dataRange.minTime,
+            dataRange.maxTime
+          )
+          this.updateState({ viewport: newViewport })
+        } else {
+          const newViewport = zoomViewport(state.viewport, scale, anchorTime)
+          this.updateState({ viewport: newViewport })
+        }
       }
       this.lastPinchDistance = distance
     }

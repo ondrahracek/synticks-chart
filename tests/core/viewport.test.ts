@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { timeToX, xToTime, priceToY, yToPrice, panViewport, zoomViewport, createViewportFromCandles, updateViewportDimensions } from '../../src/core/viewport'
+import { timeToX, xToTime, priceToY, yToPrice, panViewport, zoomViewport, createViewportFromCandles, updateViewportDimensions, getDataTimeRange, clampViewportToRange, zoomViewportWithBounds } from '../../src/core/viewport'
 import type { Viewport } from '../../src/core/viewport'
 import type { Candle } from '../../src/core/types'
 
@@ -247,6 +247,62 @@ describe('updateViewportDimensions', () => {
     expect(updated.to).toBe(2000)
     expect(updated.widthPx).toBe(1200)
     expect(updated.heightPx).toBe(900)
+  })
+})
+
+describe('getDataTimeRange', () => {
+  it('returns null for empty candles array', () => {
+    expect(getDataTimeRange([])).toBeNull()
+  })
+})
+
+describe('clampViewportToRange', () => {
+  it('returns viewport unchanged when it fits within range', () => {
+    const viewport: Viewport = {
+      from: 1100,
+      to: 1900,
+      widthPx: 800,
+      heightPx: 600
+    }
+    
+    const result = clampViewportToRange(viewport, 1000, 2000)
+    
+    expect(result.from).toBe(1100)
+    expect(result.to).toBe(1900)
+  })
+
+  it('clamps viewport when it extends beyond maxTime', () => {
+    const viewport: Viewport = {
+      from: 1500,
+      to: 2500,
+      widthPx: 800,
+      heightPx: 600
+    }
+    
+    const result = clampViewportToRange(viewport, 1000, 2000)
+    
+    expect(result.to).toBe(2000)
+    expect(result.from).toBeLessThanOrEqual(2000)
+    expect(result.from).toBeGreaterThanOrEqual(1000)
+  })
+})
+
+describe('zoomViewportWithBounds', () => {
+  it('zooms viewport and clamps to bounds', () => {
+    const viewport: Viewport = {
+      from: 1000,
+      to: 2000,
+      widthPx: 800,
+      heightPx: 600
+    }
+    
+    const result = zoomViewportWithBounds(viewport, 0.5, 1500, 500, 3000)
+    
+    const originalSpan = viewport.to - viewport.from
+    const newSpan = result.to - result.from
+    expect(newSpan).toBeGreaterThan(originalSpan)
+    expect(result.from).toBeGreaterThanOrEqual(500)
+    expect(result.to).toBeLessThanOrEqual(3000)
   })
 })
 
