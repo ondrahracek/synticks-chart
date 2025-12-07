@@ -42,6 +42,10 @@ export class IndicatorRegistry {
     this.indicators.delete(id)
     this.inputs.delete(id)
   }
+
+  getActiveCount(): number {
+    return this.indicators.size
+  }
 }
 
 export function createSMAIndicator(): IndicatorDefinition {

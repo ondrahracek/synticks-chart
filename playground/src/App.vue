@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { PlaygroundChart } from 'synticks-chart/vue'
 import ControlPanel from './components/ControlPanel.vue'
+import StatusPanel from './components/StatusPanel.vue'
 import { usePlaygroundState } from './composables/usePlaygroundState'
 import { generateSampleData, generateRandomCandle } from './utils/mockData'
 
@@ -14,6 +15,44 @@ const indicators = ref({
   sma20: false,
   sma50: false,
   sma200: false
+})
+
+const devState = ref({
+  symbol: 'BTCUSDT',
+  timeframe: '1m',
+  playback: 'live',
+  candlesCount: 0,
+  drawingsCount: 0,
+  indicatorsCount: 0
+})
+
+let stateUpdateInterval: number | null = null
+
+function updateDevState() {
+  if (chartRef.value?.getState) {
+    const state = chartRef.value.getState()
+    devState.value = {
+      symbol: state.symbol || symbol.value,
+      timeframe: state.timeframe || timeframe.value,
+      playback: state.playback || 'live',
+      candlesCount: state.candles?.length || 0,
+      drawingsCount: state.drawings?.length || 0,
+      indicatorsCount: state.indicatorsCount || 0
+    }
+  }
+}
+
+onMounted(() => {
+  updateDevState()
+  stateUpdateInterval = window.setInterval(() => {
+    updateDevState()
+  }, 100)
+})
+
+onUnmounted(() => {
+  if (stateUpdateInterval !== null) {
+    clearInterval(stateUpdateInterval)
+  }
 })
 
 function handlePlay() {
@@ -93,13 +132,14 @@ function handleSetTheme(newTheme: string) {
         @toggle-indicator="handleToggleIndicator"
         @set-theme="handleSetTheme"
       />
-      <div style="flex:1; min-height:0; padding:16px;">
+      <div style="flex:1; min-height:0; padding:16px; display:flex; flex-direction:column;">
         <PlaygroundChart
           ref="chartRef"
           :symbol="symbol"
           :timeframe="timeframe"
           :theme="theme"
         />
+        <StatusPanel :state="devState" />
       </div>
     </div>
   </div>

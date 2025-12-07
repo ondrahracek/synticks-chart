@@ -62,7 +62,8 @@ defineExpose({
   clearDrawings: () => engine?.clearDrawings?.(),
   addIndicator: (id: string, inputs: Record<string, unknown>) => engine?.addIndicator?.(id, inputs),
   removeIndicator: (id: string) => engine?.removeIndicator?.(id),
-  setTheme: (theme: ThemeName) => engine?.setTheme?.(theme)
+  setTheme: (theme: ThemeName) => engine?.setTheme?.(theme),
+  getState: () => engine?.getState?.()
 })
 </script>
 

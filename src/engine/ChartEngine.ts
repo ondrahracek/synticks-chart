@@ -1,4 +1,4 @@
-import type { TimeframeId, Candle } from '../core/types'
+import type { TimeframeId, Candle, PlaybackMode } from '../core/types'
 import { createChartState, type ChartState, type InteractionMode } from '../core/state'
 import { PlaybackController } from '../core/playback'
 import { ChartRenderer } from '../rendering/ChartRenderer'
@@ -7,6 +7,7 @@ import { InputController } from '../interaction/InputController'
 import { IndicatorRegistry } from '../core/indicators'
 import type { ThemeName } from '../core/theme'
 import { getTheme } from '../core/theme'
+import type { DrawingShape } from '../core/drawings'
 
 export interface ChartEngineOptions {
   symbol: string
@@ -99,6 +100,24 @@ export class ChartEngine {
   setTheme(themeName: ThemeName): void {
     this.state.theme = getTheme(themeName)
     this.animationLoop.setTargetState(this.state)
+  }
+
+  getState(): {
+    symbol: string
+    timeframe: TimeframeId
+    playback: PlaybackMode | 'live'
+    candles: Candle[]
+    drawings?: DrawingShape[]
+    indicatorsCount: number
+  } {
+    return {
+      symbol: this.symbol,
+      timeframe: this.timeframe,
+      playback: this.state.playback,
+      candles: this.state.candles,
+      drawings: this.state.drawings,
+      indicatorsCount: this.indicatorRegistry.getActiveCount()
+    }
   }
 
   destroy(): void {
