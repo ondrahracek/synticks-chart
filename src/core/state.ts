@@ -3,10 +3,6 @@ import type { Viewport } from './viewport'
 import type { DrawingShape } from './drawings'
 import type { Theme } from './theme'
 
-export interface ViewportState {
-  // TODO: viewport properties
-}
-
 export interface Crosshair {
   x: number
   y: number
