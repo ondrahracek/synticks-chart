@@ -1,5 +1,6 @@
 import type { Candle, PlaybackMode } from './types'
 import type { Viewport } from './viewport'
+import type { DrawingShape } from './drawings'
 
 export interface ViewportState {
   // TODO: viewport properties
@@ -10,12 +11,16 @@ export interface Crosshair {
   y: number
 }
 
+export type InteractionMode = 'pan' | 'draw-trendline' | 'draw-horizontal'
+
 export interface ChartState {
   candles: Candle[]
   missedCandles: Candle[]
   playback: PlaybackMode | 'live'
   viewport?: Viewport
   crosshair?: Crosshair
+  drawings?: DrawingShape[]
+  interactionMode?: InteractionMode
 }
 
 export function createChartState(): ChartState {

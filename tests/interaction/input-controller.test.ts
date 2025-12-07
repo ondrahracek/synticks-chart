@@ -106,5 +106,43 @@ describe('InputController', () => {
     expect(call.crosshair?.x).toBe(200)
     expect(call.crosshair?.y).toBe(300)
   })
+
+  it('creates drawing when in draw-trendline mode', () => {
+    const state: ChartState = {
+      ...createChartState(),
+      viewport: {
+        from: 1000,
+        to: 2000,
+        widthPx: 800,
+        heightPx: 600
+      },
+      interactionMode: 'draw-trendline',
+      drawings: []
+    }
+
+    getState = vi.fn(() => state)
+    controller = new InputController(canvas, getState, updateState)
+
+    const pointerDown = new PointerEvent('pointerdown', {
+      clientX: 100,
+      clientY: 200,
+      pointerId: 1
+    })
+    canvas.dispatchEvent(pointerDown)
+
+    const pointerUp = new PointerEvent('pointerup', {
+      clientX: 300,
+      clientY: 400,
+      pointerId: 1
+    })
+    canvas.dispatchEvent(pointerUp)
+
+    expect(updateState).toHaveBeenCalled()
+    const calls = updateState.mock.calls
+    const drawingsCall = calls.find(call => call[0].drawings !== undefined)
+    expect(drawingsCall).toBeDefined()
+    expect(drawingsCall![0].drawings).toHaveLength(1)
+    expect(drawingsCall![0].drawings![0].kind).toBe('trendline')
+  })
 })
 

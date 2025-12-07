@@ -1,6 +1,7 @@
 import type { ChartState } from '../core/state'
 import type { Viewport } from '../core/viewport'
 import { computeCandleRects } from './layout'
+import { timeToX, priceToY } from '../core/viewport'
 
 export class ChartRenderer {
   private canvas: HTMLCanvasElement | null = null
@@ -36,6 +37,7 @@ export class ChartRenderer {
     this.drawBackground(ctx)
     this.drawGrid(ctx)
     this.drawCandles(ctx)
+    this.drawDrawings(ctx)
     this.drawAxes(ctx)
   }
 
@@ -86,6 +88,34 @@ export class ChartRenderer {
     for (const rect of rects) {
       ctx.fillStyle = rect.isUp ? '#26a69a' : '#ef5350'
       ctx.fillRect(rect.x, rect.y, rect.w, rect.h)
+    }
+  }
+
+  private drawDrawings(ctx: CanvasRenderingContext2D): void {
+    if (!this.state || !this.viewport) return
+
+    const drawings = this.state.drawings || []
+    if (drawings.length === 0) return
+
+    const candles = this.state.candles || []
+    const minPrice = candles.length > 0 ? Math.min(...candles.map(c => c.low)) : 0
+    const maxPrice = candles.length > 0 ? Math.max(...candles.map(c => c.high)) : 100
+
+    ctx.strokeStyle = '#2196F3'
+    ctx.lineWidth = 2
+
+    for (const drawing of drawings) {
+      if (drawing.points.length < 2) continue
+
+      const x1 = timeToX(drawing.points[0].time, this.viewport)
+      const y1 = priceToY(drawing.points[0].price, this.viewport, minPrice, maxPrice)
+      const x2 = timeToX(drawing.points[drawing.points.length - 1].time, this.viewport)
+      const y2 = priceToY(drawing.points[drawing.points.length - 1].price, this.viewport, minPrice, maxPrice)
+
+      ctx.beginPath()
+      ctx.moveTo(x1, y1)
+      ctx.lineTo(x2, y2)
+      ctx.stroke()
     }
   }
 
