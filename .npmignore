@@ -1,0 +1,17 @@
+# Source files (users don't need these)
+src/
+tests/
+playground/
+
+# Build configs
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+
+# Development files
+.gitignore
+*.log
+.DS_Store
+
+# Only dist/ should be published (already handled by "files" field, but this is extra safety)
+

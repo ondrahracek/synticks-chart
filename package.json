@@ -1,7 +1,7 @@
 {
   "name": "synticks-chart",
-  "version": "0.0.1",
-  "description": "A playful real-time candlestick charting engine by Ondra.",
+  "version": "1.0.0",
+  "description": "A real-time candlestick charting engine for Vue 3 and vanilla JavaScript/TypeScript",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.cjs",
