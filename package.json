@@ -19,6 +19,11 @@
       "require": "./dist/vue/vue.cjs.js"
     }
   },
+  "typesVersions": {
+    "*": {
+      "vue": ["dist/vue/vue-entry.d.ts"]
+    }
+  },
   "files": [
     "dist"
   ],
