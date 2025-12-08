@@ -14,23 +14,44 @@ interface Props {
 const props = defineProps<Props>()
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 let engine: ChartEngine | null = null
+let resizeObserver: ResizeObserver | null = null
+
+function updateCanvasSize(canvas: HTMLCanvasElement) {
+  const rect = canvas.getBoundingClientRect()
+  canvas.width = rect.width
+  canvas.height = rect.height
+}
 
 onMounted(() => {
   if (!canvasRef.value) return
 
-  const rect = canvasRef.value.getBoundingClientRect()
-  canvasRef.value.width = rect.width
-  canvasRef.value.height = rect.height
+  const canvas = canvasRef.value
+  canvas.style.width = '100%'
+  canvas.style.height = '100%'
+  canvas.style.display = 'block'
 
-  engine = new ChartEngine(canvasRef.value, {
+  updateCanvasSize(canvas)
+
+  engine = new ChartEngine(canvas, {
     symbol: props.symbol,
     timeframe: props.timeframe
   })
   engine.setSymbol(props.symbol)
   engine.setTimeframe(props.timeframe)
+
+  resizeObserver = new ResizeObserver(() => {
+    if (canvasRef.value) {
+      updateCanvasSize(canvasRef.value)
+    }
+  })
+  resizeObserver.observe(canvas)
 })
 
 onBeforeUnmount(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
   if (engine) {
     engine.destroy()
     engine = null
