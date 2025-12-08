@@ -97,11 +97,3 @@ defineExpose({
 <template>
   <canvas ref="canvasRef" class="synticks-chart-canvas" />
 </template>
-
-<style scoped>
-.synticks-chart-canvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-</style>

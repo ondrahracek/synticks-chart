@@ -64,5 +64,73 @@ describe('aggregateCandles', () => {
     expect(result[0].open).toBe(100)
     expect(result[0].close).toBe(109)
   })
+
+  it('aggregates 1-second candles to 5-second candles', () => {
+    const baseTime = new Date('2024-01-01T00:00:00Z').getTime()
+    const baseCandles: Candle[] = [
+      { open: 100, high: 105, low: 99, close: 103, volume: 100, timestamp: baseTime + 0 * 1000 },
+      { open: 103, high: 107, low: 102, close: 106, volume: 120, timestamp: baseTime + 1 * 1000 },
+      { open: 106, high: 108, low: 104, close: 105, volume: 110, timestamp: baseTime + 2 * 1000 },
+      { open: 105, high: 109, low: 103, close: 108, volume: 130, timestamp: baseTime + 3 * 1000 },
+      { open: 108, high: 110, low: 107, close: 109, volume: 140, timestamp: baseTime + 4 * 1000 }
+    ]
+
+    const result = aggregateCandles(baseCandles, '5s')
+
+    expect(result).toHaveLength(1)
+    expect(result[0].timestamp).toBe(baseTime)
+    expect(result[0].open).toBe(100)
+    expect(result[0].high).toBe(110)
+    expect(result[0].low).toBe(99)
+    expect(result[0].close).toBe(109)
+    expect(result[0].volume).toBe(600)
+  })
+
+  it('aggregates 1-minute candles to 10-minute candles', () => {
+    const baseTime = new Date('2024-01-01T00:00:00Z').getTime()
+    const baseCandles: Candle[] = []
+    for (let i = 0; i < 10; i++) {
+      baseCandles.push({
+        open: 100 + i,
+        high: 105 + i,
+        low: 99 + i,
+        close: 103 + i,
+        volume: 1000 + i * 100,
+        timestamp: baseTime + i * 60000
+      })
+    }
+
+    const result = aggregateCandles(baseCandles, '10m')
+
+    expect(result).toHaveLength(1)
+    expect(result[0].timestamp).toBe(baseTime)
+    expect(result[0].open).toBe(100)
+    expect(result[0].close).toBe(112)
+    expect(result[0].high).toBe(114)
+    expect(result[0].low).toBe(99)
+    expect(result[0].volume).toBe(14500)
+  })
+
+  it('aggregates 1-minute candles to 45-minute candles', () => {
+    const baseTime = new Date('2024-01-01T00:00:00Z').getTime()
+    const baseCandles: Candle[] = []
+    for (let i = 0; i < 45; i++) {
+      baseCandles.push({
+        open: 100 + i,
+        high: 105 + i,
+        low: 99 + i,
+        close: 103 + i,
+        volume: 1000 + i * 100,
+        timestamp: baseTime + i * 60000
+      })
+    }
+
+    const result = aggregateCandles(baseCandles, '45m')
+
+    expect(result).toHaveLength(1)
+    expect(result[0].timestamp).toBe(baseTime)
+    expect(result[0].open).toBe(100)
+    expect(result[0].close).toBe(147)
+  })
 })
 
