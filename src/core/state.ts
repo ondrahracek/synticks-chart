@@ -16,6 +16,14 @@ export interface IndicatorData {
   timestamps: number[]
 }
 
+export interface LayoutConfig {
+  labelPadding?: {
+    enabled: boolean
+    left?: number
+    bottom?: number
+  }
+}
+
 export interface ChartState {
   candles: Candle[]
   missedCandles: Candle[]
@@ -27,13 +35,19 @@ export interface ChartState {
   indicators?: IndicatorData[]
   interactionMode?: InteractionMode
   theme?: Theme
+  layout?: LayoutConfig
 }
 
 export function createChartState(): ChartState {
   return {
     candles: [],
     missedCandles: [],
-    playback: 'live'
+    playback: 'live',
+    layout: {
+      labelPadding: {
+        enabled: true
+      }
+    }
   }
 }
 

@@ -8,8 +8,9 @@ import { IndicatorRegistry } from '../core/indicators'
 import type { ThemeName } from '../core/theme'
 import { getTheme } from '../core/theme'
 import type { DrawingShape } from '../core/drawings'
-import { createViewportFromCandles } from '../core/viewport'
+import { createViewportFromCandles, updateViewportDimensions } from '../core/viewport'
 import type { Viewport } from '../core/viewport'
+import { getDefaultLabelPadding } from '../rendering/padding'
 
 export interface ChartEngineOptions {
   symbol: string
@@ -115,17 +116,35 @@ export class ChartEngine {
     }
   }
 
-  loadCandles(candles: Candle[]): void {
-    this.state.candles = candles
+  private recalculateViewport(preserveTimeRange: boolean = false): void {
+    if (this.state.candles.length === 0) return
     
-    if (candles.length > 0) {
-      const { width, height } = this.getCanvasDimensions()
-      const viewport = createViewportFromCandles(candles, width, height)
+    const { width, height } = this.getCanvasDimensions()
+    let effectiveWidth = width
+    let effectiveHeight = height
+    
+    if (this.state.layout?.labelPadding?.enabled) {
+      const padding = getDefaultLabelPadding()
+      const leftPadding = this.state.layout.labelPadding.left ?? padding.left
+      const bottomPadding = this.state.layout.labelPadding.bottom ?? padding.bottom
+      effectiveWidth = width - leftPadding
+      effectiveHeight = height - bottomPadding
+    }
+    
+    if (preserveTimeRange && this.state.viewport) {
+      const viewport = updateViewportDimensions(this.state.viewport, effectiveWidth, effectiveHeight)
+      this.state.viewport = viewport
+    } else {
+      const viewport = createViewportFromCandles(this.state.candles, effectiveWidth, effectiveHeight)
       if (viewport) {
         this.state.viewport = viewport
       }
     }
-    
+  }
+
+  loadCandles(candles: Candle[]): void {
+    this.state.candles = candles
+    this.recalculateViewport()
     this.recalculateAllIndicators()
     this.animationLoop.setTargetState(this.state)
   }
@@ -158,6 +177,20 @@ export class ChartEngine {
     this.animationLoop.setTargetState(this.state)
   }
 
+  setLabelPadding(enabled: boolean): void {
+    if (!this.state.layout) {
+      this.state.layout = {}
+    }
+    if (!this.state.layout.labelPadding) {
+      this.state.layout.labelPadding = { enabled }
+    } else {
+      this.state.layout.labelPadding.enabled = enabled
+    }
+    
+    this.recalculateViewport(true)
+    this.animationLoop.setTargetState(this.state)
+  }
+
   getState(): {
     symbol: string
     timeframe: TimeframeId
@@ -167,6 +200,7 @@ export class ChartEngine {
     indicators?: import('../core/state').IndicatorData[]
     indicatorsCount: number
     viewport?: Viewport
+    layout?: import('../core/state').LayoutConfig
   } {
     return {
       symbol: this.symbol,
@@ -176,7 +210,8 @@ export class ChartEngine {
       drawings: this.state.drawings,
       indicators: this.state.indicators,
       indicatorsCount: this.indicatorRegistry.getActiveCount(),
-      viewport: this.state.viewport
+      viewport: this.state.viewport,
+      layout: this.state.layout
     }
   }
 

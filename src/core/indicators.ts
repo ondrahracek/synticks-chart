@@ -11,7 +11,9 @@ export class IndicatorRegistry {
   register(id: string, definition: IndicatorDefinition): void
   register(id: string, inputs: Record<string, unknown>): void
   register(id: string, definitionOrInputs: IndicatorDefinition | Record<string, unknown>): void {
-    if (id === 'sma') {
+    if ('calculate' in definitionOrInputs) {
+      this.indicators.set(id, definitionOrInputs as IndicatorDefinition)
+    } else if (id === 'sma') {
       const inputs = definitionOrInputs as Record<string, unknown>
       const period = inputs.period as number
       const fullId = `sma:${period}`
@@ -19,8 +21,6 @@ export class IndicatorRegistry {
         this.indicators.set(fullId, createSMAIndicator())
         this.inputs.set(fullId, inputs)
       }
-    } else if ('calculate' in definitionOrInputs) {
-      this.indicators.set(id, definitionOrInputs as IndicatorDefinition)
     } else {
       this.inputs.set(id, definitionOrInputs as Record<string, unknown>)
     }

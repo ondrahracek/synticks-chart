@@ -70,6 +70,13 @@
         Dark
       </button>
     </div>
+    <div class="label-padding-section">
+      <label>
+        <input data-test="label-padding" type="checkbox" :checked="labelPaddingEnabled"
+          @change="emit('toggleLabelPadding')" />
+        Label Padding
+      </label>
+    </div>
   </div>
 </template>
 
@@ -87,6 +94,7 @@ defineProps<{
     sma200: boolean
   }
   theme: ThemeName
+  labelPaddingEnabled: boolean
 }>()
 
 const emit = defineEmits<{
@@ -102,6 +110,7 @@ const emit = defineEmits<{
   (e: 'clearDrawings'): void
   (e: 'toggleIndicator', payload: { type: string; period: number }): void
   (e: 'setTheme', theme: ThemeName): void
+  (e: 'toggleLabelPadding'): void
 }>()
 
 const timeframes: TimeframeId[] = ['1m', '5m', '15m', '1h', '1d']

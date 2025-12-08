@@ -68,6 +68,7 @@ defineExpose({
   addIndicator: (id: string, inputs: Record<string, unknown>) => engine?.addIndicator?.(id, inputs),
   removeIndicator: (id: string) => engine?.removeIndicator?.(id),
   setTheme: (theme: ThemeName) => engine?.setTheme?.(theme),
+  setLabelPadding: (enabled: boolean) => engine?.setLabelPadding?.(enabled),
   getState: () => engine?.getState?.()
 })
 </script>

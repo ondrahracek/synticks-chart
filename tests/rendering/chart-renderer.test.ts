@@ -1022,5 +1022,210 @@ describe('ChartRenderer', () => {
     expect(horizontalLines.length).toBeGreaterThan(0)
     expect(horizontalLines.length).toBeLessThanOrEqual(20)
   })
+
+  it('applies canvas clipping when label padding is enabled', () => {
+    const saveCalls: number[] = []
+    const restoreCalls: number[] = []
+    const beginPathCalls: number[] = []
+    const rectCalls: Array<[number, number, number, number]> = []
+    const clipCalls: number[] = []
+    
+    const mockCtx = {
+      strokeStyle: '',
+      fillStyle: '',
+      lineWidth: 0,
+      font: '',
+      textAlign: '',
+      textBaseline: '',
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      beginPath: vi.fn(() => beginPathCalls.push(1)),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      fillText: vi.fn(),
+      rect: vi.fn((x: number, y: number, w: number, h: number) => rectCalls.push([x, y, w, h])),
+      clip: vi.fn(() => clipCalls.push(1)),
+      save: vi.fn(() => saveCalls.push(1)),
+      restore: vi.fn(() => restoreCalls.push(1))
+    }
+    
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 600
+    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx as unknown as CanvasRenderingContext2D)
+    const renderer = new ChartRenderer(canvas)
+    
+    const state: ChartState = {
+      candles: [
+        { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 }
+      ],
+      missedCandles: [],
+      playback: 'live',
+      layout: {
+        labelPadding: {
+          enabled: true
+        }
+      },
+      viewport: {
+        from: 1000,
+        to: 2000,
+        widthPx: 740,
+        heightPx: 570
+      }
+    }
+
+    renderer.setState(state)
+    renderer.render()
+    
+    expect(saveCalls.length).toBeGreaterThan(0)
+    expect(beginPathCalls.length).toBeGreaterThan(0)
+    expect(rectCalls.length).toBeGreaterThan(0)
+    expect(clipCalls.length).toBeGreaterThan(0)
+    expect(restoreCalls.length).toBeGreaterThan(0)
+    
+    const clippingRect = rectCalls.find(rect => rect[2] === 740 && rect[3] === 570)
+    expect(clippingRect).toBeDefined()
+    expect(clippingRect![0]).toBe(60)
+    expect(clippingRect![1]).toBe(0)
+  })
+
+  it('draws labels in padding area when clipping is enabled', () => {
+    const fillTextCalls: Array<[string, number, number]> = []
+    const restoreCalls: number[] = []
+    let clipActive = false
+    
+    const mockCtx = {
+      strokeStyle: '',
+      fillStyle: '',
+      lineWidth: 0,
+      font: '',
+      textAlign: '',
+      textBaseline: '',
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      fillText: vi.fn((text: string, x: number, y: number) => {
+        if (!clipActive) {
+          fillTextCalls.push([text, x, y])
+        }
+      }),
+      rect: vi.fn(),
+      clip: vi.fn(() => { clipActive = true }),
+      save: vi.fn(),
+      restore: vi.fn(() => {
+        restoreCalls.push(1)
+        clipActive = false
+      })
+    }
+    
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 600
+    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx as unknown as CanvasRenderingContext2D)
+    const renderer = new ChartRenderer(canvas)
+    
+    const state: ChartState = {
+      candles: [
+        { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 }
+      ],
+      missedCandles: [],
+      playback: 'live',
+      layout: {
+        labelPadding: {
+          enabled: true
+        }
+      },
+      viewport: {
+        from: 1000,
+        to: 2000,
+        widthPx: 740,
+        heightPx: 570
+      }
+    }
+
+    renderer.setState(state)
+    renderer.render()
+    
+    expect(restoreCalls.length).toBeGreaterThan(0)
+    const labelsInPaddingArea = fillTextCalls.filter(call => call[1] < 60 || call[2] > 570)
+    expect(labelsInPaddingArea.length).toBeGreaterThan(0)
+  })
+
+  it('filters overlapping time labels when zoomed in', () => {
+    let fillTextCalls: Array<[string, number, number]> = []
+    
+    const mockCtx = {
+      strokeStyle: '',
+      fillStyle: '',
+      lineWidth: 0,
+      font: '12px sans-serif',
+      textAlign: 'center',
+      textBaseline: 'top',
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      measureText: vi.fn((text: string) => {
+        return { width: 80 } as TextMetrics
+      }),
+      fillText: vi.fn((text: string, x: number, y: number) => { fillTextCalls.push([text, x, y]) })
+    }
+    
+    const canvas = document.createElement('canvas')
+    canvas.width = 200
+    canvas.height = 600
+    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx as unknown as CanvasRenderingContext2D)
+    const renderer = new ChartRenderer(canvas)
+
+    // Create a viewport that would generate many overlapping labels
+    // Use a larger time span but narrow width to force many labels close together
+    const state: ChartState = {
+      candles: [
+        { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+        { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 }
+      ],
+      missedCandles: [],
+      playback: 'live',
+      viewport: {
+        from: 1000,
+        to: 7000, // 6 second span in 200px width - will generate multiple 1-second interval labels
+        widthPx: 200,
+        heightPx: 600
+      }
+    }
+
+    renderer.setState(state)
+    renderer.render()
+
+    // Get all time label calls (labels drawn at bottom of chart, y = 604 when no padding)
+    // Time labels are formatted as time strings, not numbers
+    const timeLabelCalls = fillTextCalls.filter(call => {
+      const [text, x, y] = call
+      // Time labels are at the bottom (y = 604 when no padding, or canvas.height - bottomPadding + 4)
+      const isAtBottom = y >= 600 && y <= 610
+      // Time labels contain colons (e.g., "12:34:56") or are date strings
+      const looksLikeTime = typeof text === 'string' && (text.includes(':') || text.includes('/') || text.match(/\d{1,2}\/\d{1,2}\/\d{4}/))
+      return isAtBottom && looksLikeTime
+    })
+
+    expect(timeLabelCalls.length).toBeGreaterThan(1) // Should have multiple labels to test filtering
+
+    // Sort by x position to check adjacent labels
+    timeLabelCalls.sort((a, b) => a[1] - b[1])
+
+    // Verify that no two labels overlap (each label is 80px wide, so spacing should be >= 80px)
+    for (let i = 0; i < timeLabelCalls.length - 1; i++) {
+      const [text1, x1] = timeLabelCalls[i]
+      const [text2, x2] = timeLabelCalls[i + 1]
+      const spacing = Math.abs(x2 - x1)
+      expect(spacing).toBeGreaterThanOrEqual(80)
+    }
+  })
 })
 
