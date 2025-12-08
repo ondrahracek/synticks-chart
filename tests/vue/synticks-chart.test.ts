@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import PlaygroundChart from '../../src/vue/PlaygroundChart.vue'
+import SynticksChart from '../../src/vue/SynticksChart.vue'
 import { ChartEngine } from '../../src/engine/ChartEngine'
 
 vi.mock('../../src/engine/ChartEngine', () => ({
@@ -13,9 +13,9 @@ vi.mock('../../src/engine/ChartEngine', () => ({
   }))
 }))
 
-describe('PlaygroundChart', () => {
+describe('SynticksChart', () => {
   it('creates a canvas element', () => {
-    const wrapper = mount(PlaygroundChart, {
+    const wrapper = mount(SynticksChart, {
       props: {
         symbol: 'BTCUSDT',
         timeframe: '1m'
@@ -27,7 +27,7 @@ describe('PlaygroundChart', () => {
   })
 
   it('constructs ChartEngine on mount', () => {
-    mount(PlaygroundChart, {
+    mount(SynticksChart, {
       props: {
         symbol: 'BTCUSDT',
         timeframe: '1m'
@@ -47,7 +47,7 @@ describe('PlaygroundChart', () => {
       destroy: destroySpy
     }))
 
-    const wrapper = mount(PlaygroundChart, {
+    const wrapper = mount(SynticksChart, {
       props: {
         symbol: 'BTCUSDT',
         timeframe: '1m'
@@ -60,7 +60,7 @@ describe('PlaygroundChart', () => {
   })
 
   it('sets canvas dimensions from container on mount', async () => {
-    const wrapper = mount(PlaygroundChart, {
+    const wrapper = mount(SynticksChart, {
       props: {
         symbol: 'BTCUSDT',
         timeframe: '1m'

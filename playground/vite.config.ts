@@ -8,8 +8,8 @@ export default defineConfig({
     alias: {
       // resolve 'synticks-chart' imports to your source folder
       'synticks-chart': resolve(__dirname, '../src'),
-      // handle subpath exports
-      'synticks-chart/vue': resolve(__dirname, '../src/vue.ts')
+      // handle subpath exports - point to vue-entry.ts for Vite build
+      'synticks-chart/vue': resolve(__dirname, '../src/vue-entry.ts')
     }
   }
 })

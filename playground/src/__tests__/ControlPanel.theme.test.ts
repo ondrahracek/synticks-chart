@@ -5,8 +5,8 @@ import App from '../App.vue'
 const setTheme = vi.fn()
 
 vi.mock('synticks-chart/vue', () => ({
-  PlaygroundChart: {
-    name: 'PlaygroundChart',
+  SynticksChart: {
+    name: 'SynticksChart',
     props: ['symbol', 'timeframe', 'theme'],
     template: '<div></div>',
     setup() {
@@ -56,14 +56,14 @@ describe('ControlPanel - Theme', () => {
     expect(darkButton.classes()).toContain('active')
   })
 
-  it('updates PlaygroundChart theme prop when theme changes', async () => {
+  it('updates SynticksChart theme prop when theme changes', async () => {
     const wrapper = mount(App)
     
     const darkButton = wrapper.find('[data-test="theme-dark"]')
     await darkButton.trigger('click')
     await wrapper.vm.$nextTick()
     
-    const chart = wrapper.findComponent({ name: 'PlaygroundChart' })
+    const chart = wrapper.findComponent({ name: 'SynticksChart' })
     expect(chart.props('theme')).toBe('dark')
   })
 })

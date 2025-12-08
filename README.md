@@ -15,10 +15,10 @@ npm install synticks-chart
 ```vue
 <script setup lang="ts">
 import { ref } from "vue";
-import { PlaygroundChart } from "synticks-chart/vue";
+import { SynticksChart } from "synticks-chart/vue";
 import type { Candle, TimeframeId } from "synticks-chart";
 
-const chartRef = ref<InstanceType<typeof PlaygroundChart> | null>(null);
+const chartRef = ref<InstanceType<typeof SynticksChart> | null>(null);
 const symbol = ref("BTCUSDT");
 const timeframe = ref<TimeframeId>("1m");
 
@@ -48,7 +48,7 @@ function loadData() {
 
 <template>
   <div style="width: 100%; height: 600px;">
-    <PlaygroundChart
+    <SynticksChart
       ref="chartRef"
       :symbol="symbol"
       :timeframe="timeframe"
@@ -239,12 +239,12 @@ The chart needs a container with explicit dimensions:
 ```vue
 <!-- ✅ Good -->
 <div style="width: 100%; height: 600px;">
-  <PlaygroundChart ... />
+  <SynticksChart ... />
 </div>
 
 <!-- ❌ Bad - no height -->
 <div>
-  <PlaygroundChart ... />
+  <SynticksChart ... />
 </div>
 ```
 
@@ -383,7 +383,7 @@ import type {
 To use the chart, you need to:
 
 1. ✅ Install: `npm install synticks-chart`
-2. ✅ Import: `import { PlaygroundChart } from 'synticks-chart/vue'`
+2. ✅ Import: `import { SynticksChart } from 'synticks-chart/vue'`
 3. ✅ Provide container: With explicit width/height
 4. ✅ Format data: Candles with `timestamp`, `open`, `high`, `low`, `close`, `volume`
 5. ✅ Load data: Call `loadCandles(candles)`

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { PlaygroundChart } from 'synticks-chart/vue'
+import { SynticksChart } from 'synticks-chart/vue'
 import ControlPanel from './components/ControlPanel.vue'
 import StatusPanel from './components/StatusPanel.vue'
 import { usePlaygroundState } from './composables/usePlaygroundState'
 import { generateSampleData, generateRandomCandle } from './utils/mockData'
 import { ThemeName } from 'synticks-chart'
 
-const chartRef = ref<InstanceType<typeof PlaygroundChart> | null>(null)
+const chartRef = ref<InstanceType<typeof SynticksChart> | null>(null)
 const { symbol, timeframe } = usePlaygroundState()
 const isPlaying = ref(false)
 const activeTool = ref<string>('pan')
@@ -128,7 +128,7 @@ function handleToggleLabelPadding() {
         @toggle-label-padding="handleToggleLabelPadding" />
       <div style="flex:1; min-height:0; padding:16px; display:flex; flex-direction:column;">
         <div style="flex: 1; min-height: 0; position: relative;">
-          <PlaygroundChart ref="chartRef" :symbol="symbol" :timeframe="timeframe" :theme="theme" />
+          <SynticksChart ref="chartRef" :symbol="symbol" :timeframe="timeframe" :theme="theme" />
         </div>
         <StatusPanel :state="devState" />
       </div>

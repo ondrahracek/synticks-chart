@@ -11,9 +11,9 @@ describe('Public API', () => {
     expect(module).toBeDefined()
   })
 
-  it('exports PlaygroundChart from vue entry', async () => {
+  it('exports SynticksChart from vue entry', async () => {
     const module = await import('../src/vue')
-    expect(module.PlaygroundChart).toBeDefined()
+    expect(module.SynticksChart).toBeDefined()
   })
 })
 

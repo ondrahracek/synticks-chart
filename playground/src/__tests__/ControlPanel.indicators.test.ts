@@ -6,8 +6,8 @@ const addIndicator = vi.fn()
 const removeIndicator = vi.fn()
 
 vi.mock('synticks-chart/vue', () => ({
-  PlaygroundChart: {
-    name: 'PlaygroundChart',
+  SynticksChart: {
+    name: 'SynticksChart',
     props: ['symbol', 'timeframe'],
     template: '<div></div>',
     setup() {

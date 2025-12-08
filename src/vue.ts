@@ -1,4 +1,4 @@
-import PlaygroundChart from './vue/PlaygroundChart.vue'
+import SynticksChart from './vue/SynticksChart.vue'
 
-export { PlaygroundChart }
-export default PlaygroundChart
+export { SynticksChart }
+export default SynticksChart

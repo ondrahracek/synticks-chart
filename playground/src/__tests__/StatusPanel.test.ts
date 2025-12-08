@@ -5,8 +5,8 @@ import App from '../App.vue'
 const getState = vi.fn()
 
 vi.mock('synticks-chart/vue', () => ({
-  PlaygroundChart: {
-    name: 'PlaygroundChart',
+  SynticksChart: {
+    name: 'SynticksChart',
     props: ['symbol', 'timeframe', 'theme'],
     template: '<div></div>',
     setup() {

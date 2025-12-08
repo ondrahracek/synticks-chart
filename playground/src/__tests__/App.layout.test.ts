@@ -4,8 +4,8 @@ import App from '../App.vue'
 import { vi } from 'vitest'
 
 vi.mock('synticks-chart/vue', () => ({
-  PlaygroundChart: {
-    name: 'PlaygroundChart',
+  SynticksChart: {
+    name: 'SynticksChart',
     template: '<div class="playground-chart-stub">Chart</div>'
   }
 }))
@@ -18,7 +18,7 @@ describe('App Layout', () => {
     expect(controlPanel.exists()).toBe(true)
   })
 
-  it('renders PlaygroundChart component', () => {
+  it('renders SynticksChart component', () => {
     const wrapper = mount(App)
     
     const chart = wrapper.find('.playground-chart-stub')

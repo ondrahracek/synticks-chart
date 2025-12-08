@@ -4,8 +4,8 @@ import App from '../App.vue'
 import { vi } from 'vitest'
 
 vi.mock('synticks-chart/vue', () => ({
-  PlaygroundChart: {
-    name: 'PlaygroundChart',
+  SynticksChart: {
+    name: 'SynticksChart',
     props: ['symbol', 'timeframe'],
     template: '<div class="playground-chart-stub">Chart</div>'
   }
@@ -20,7 +20,7 @@ describe('ControlPanel - Timeframe', () => {
     
     await button.trigger('click')
     
-    const chart = wrapper.findComponent({ name: 'PlaygroundChart' })
+    const chart = wrapper.findComponent({ name: 'SynticksChart' })
     expect(chart.props('timeframe')).toBe('5m')
   })
 })

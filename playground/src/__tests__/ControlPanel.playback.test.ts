@@ -7,8 +7,8 @@ const pauseMock = vi.fn()
 const scrollToLiveMock = vi.fn()
 
 vi.mock('synticks-chart/vue', () => ({
-  PlaygroundChart: {
-    name: 'PlaygroundChart',
+  SynticksChart: {
+    name: 'SynticksChart',
     props: ['symbol', 'timeframe'],
     template: '<div></div>',
     setup() {
