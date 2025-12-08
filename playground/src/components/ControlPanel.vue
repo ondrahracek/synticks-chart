@@ -8,14 +8,8 @@
       </button>
     </div>
     <div class="playback-buttons">
-      <button data-test="btn-play" :disabled="isPlaying" @click="emit('play')">
-        Play
-      </button>
-      <button data-test="btn-pause" :disabled="!isPlaying" @click="emit('pause')">
-        Pause
-      </button>
       <button data-test="btn-live" @click="emit('live')">
-        Go LIVE
+        Go to Live
       </button>
     </div>
     <div class="mock-data-buttons">
@@ -86,7 +80,6 @@ import type { ThemeName, TimeframeId } from 'synticks-chart'
 defineProps<{
   symbol: string
   timeframe: TimeframeId
-  isPlaying: boolean
   activeTool: string
   indicators: {
     sma20: boolean
@@ -100,8 +93,6 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'update:symbol', value: string): void
   (e: 'update:timeframe', value: TimeframeId): void
-  (e: 'play'): void
-  (e: 'pause'): void
   (e: 'live'): void
   (e: 'loadSample'): void
   (e: 'resetData'): void

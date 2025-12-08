@@ -2,7 +2,7 @@
   <div data-test="status-panel" class="status-panel">
     <div>Symbol: {{ state.symbol }}</div>
     <div>Timeframe: {{ state.timeframe }}</div>
-    <div>Playback: {{ state.playback === 'live' ? 'LIVE' : state.playback }}</div>
+    <div>Auto-scroll: {{ state.autoScrollEnabled ? 'enabled' : 'disabled' }}</div>
     <div>Candles: {{ state.candlesCount }}</div>
     <div>Drawings: {{ state.drawingsCount }}</div>
     <div>Indicators: {{ state.indicatorsCount }}</div>
@@ -14,7 +14,7 @@ defineProps<{
   state: {
     symbol: string
     timeframe: string
-    playback: string
+    autoScrollEnabled: boolean
     candlesCount: number
     drawingsCount: number
     indicatorsCount: number

@@ -18,6 +18,10 @@ export class ChartRenderer {
     this.state = state
   }
 
+  getState(): ChartState | null {
+    return this.state
+  }
+
   resize(width: number, height: number): void {
     if (!this.canvas) return
     this.canvas.width = width

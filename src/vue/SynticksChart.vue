@@ -77,11 +77,9 @@ watch(() => props.theme, (newTheme: ThemeName | undefined) => {
 })
 
 defineExpose({
-  play: () => engine?.play(),
-  pause: () => engine?.pause(),
   setTimeframe: (tf: TimeframeId) => engine?.setTimeframe(tf),
   setDrawingMode: (mode: string) => engine?.setDrawingMode?.(mode as InteractionMode),
-  scrollToLive: () => { },
+  scrollToLive: () => engine?.scrollToLive?.(),
   loadCandles: (candles: Candle[]) => engine?.loadCandles?.(candles),
   resetData: () => engine?.resetData?.(),
   appendCandle: (candle: Candle) => engine?.appendCandle?.(candle),

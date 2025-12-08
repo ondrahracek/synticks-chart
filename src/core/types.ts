@@ -17,5 +17,3 @@ export interface PricePoint {
 }
 
 export type SeriesId = string
-
-export type PlaybackMode = 'play' | 'pause' | 'catchup'

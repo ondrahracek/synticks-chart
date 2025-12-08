@@ -42,8 +42,7 @@ describe('ChartRenderer', () => {
     const darkTheme = getTheme('dark')
     const state: ChartState = {
       candles: [],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       theme: darkTheme,
       viewport: {
         from: 1000,
@@ -89,8 +88,7 @@ describe('ChartRenderer', () => {
     const darkTheme = getTheme('dark')
     const state: ChartState = {
       candles: [],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       theme: darkTheme,
       viewport: {
         from: 1000,
@@ -144,8 +142,7 @@ describe('ChartRenderer', () => {
         { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
         { timestamp: 2000, open: 103, high: 107, low: 102, close: 101, volume: 1200 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       theme: customTheme,
       viewport: {
         from: 1000,
@@ -198,8 +195,7 @@ describe('ChartRenderer', () => {
       candles: [
         { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       theme: customTheme,
       drawings: [
         {
@@ -258,8 +254,7 @@ describe('ChartRenderer', () => {
       candles: [
         { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       currentDrawing: {
         kind: 'trendline',
         points: [
@@ -320,8 +315,7 @@ describe('ChartRenderer', () => {
       candles: [
         { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       viewport: {
         from: 1000,
         to: 2000,
@@ -372,8 +366,7 @@ describe('ChartRenderer', () => {
         { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
         { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       viewport: {
         from: 1000,
         to: 2000,
@@ -435,8 +428,7 @@ describe('ChartRenderer', () => {
         { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
         { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       viewport: {
         from: 1000,
         to: 2000,
@@ -484,8 +476,7 @@ describe('ChartRenderer', () => {
         { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
         { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       viewport: {
         from: 1000,
         to: 2000,
@@ -531,8 +522,7 @@ describe('ChartRenderer', () => {
         { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
         { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       viewport: {
         from: 1000,
         to: 2000,
@@ -579,8 +569,7 @@ describe('ChartRenderer', () => {
       candles: [
         { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       viewport: {
         from: 1000,
         to: 2000,
@@ -620,8 +609,7 @@ describe('ChartRenderer', () => {
     
     const state: ChartState = {
       candles: [],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       indicators: [],
       viewport: {
         from: 1000,
@@ -671,8 +659,7 @@ describe('ChartRenderer', () => {
         { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
         { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       indicators: [
         {
           id: 'sma:2',
@@ -732,8 +719,7 @@ describe('ChartRenderer', () => {
         { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 },
         { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       indicators: [
         {
           id: 'sma:2',
@@ -803,8 +789,7 @@ describe('ChartRenderer', () => {
         { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 },
         { timestamp: 4000, open: 105, high: 109, low: 103, close: 108, volume: 1300 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       indicators: [
         {
           id: 'sma:2',
@@ -875,8 +860,7 @@ describe('ChartRenderer', () => {
         { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 },
         { timestamp: 4000, open: 105, high: 109, low: 103, close: 108, volume: 1300 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       indicators: [
         {
           id: 'sma:2',
@@ -942,8 +926,7 @@ describe('ChartRenderer', () => {
         { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 },
         { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       indicators: [
         {
           id: 'sma:2',
@@ -1001,8 +984,7 @@ describe('ChartRenderer', () => {
         { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
         { timestamp: 1100, open: 103, high: 107, low: 102, close: 106, volume: 1200 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       viewport: {
         from: 1000,
         to: 1100,
@@ -1060,8 +1042,7 @@ describe('ChartRenderer', () => {
       candles: [
         { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       layout: {
         labelPadding: {
           enabled: true
@@ -1132,8 +1113,7 @@ describe('ChartRenderer', () => {
       candles: [
         { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       layout: {
         labelPadding: {
           enabled: true
@@ -1190,8 +1170,7 @@ describe('ChartRenderer', () => {
         { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
         { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 }
       ],
-      missedCandles: [],
-      playback: 'live',
+      autoScrollEnabled: true,
       viewport: {
         from: 1000,
         to: 7000, // 6 second span in 200px width - will generate multiple 1-second interval labels

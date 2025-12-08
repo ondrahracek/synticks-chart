@@ -24,8 +24,7 @@ vi.mock('../../src/engine/ChartEngine', () => ({
   ChartEngine: vi.fn().mockImplementation(() => ({
     setSymbol: vi.fn(),
     setTimeframe: vi.fn(),
-    play: vi.fn(),
-    pause: vi.fn(),
+    scrollToLive: vi.fn(),
     destroy: vi.fn()
   }))
 }))
@@ -63,8 +62,7 @@ describe('SynticksChart', () => {
     ;(ChartEngine as any).mockImplementation(() => ({
       setSymbol: vi.fn(),
       setTimeframe: vi.fn(),
-      play: vi.fn(),
-      pause: vi.fn(),
+      scrollToLive: vi.fn(),
       destroy: destroySpy
     }))
 
@@ -198,6 +196,28 @@ describe('SynticksChart', () => {
     wrapper.unmount()
 
     expect(resizeObserverCallbacks.length).toBeLessThan(initialCallbackCount)
+  })
+
+  it('exposes scrollToLive method', () => {
+    const scrollToLiveSpy = vi.fn()
+    ;(ChartEngine as any).mockImplementation(() => ({
+      setSymbol: vi.fn(),
+      setTimeframe: vi.fn(),
+      scrollToLive: scrollToLiveSpy,
+      destroy: vi.fn()
+    }))
+
+    const wrapper = mount(SynticksChart, {
+      props: {
+        symbol: 'BTCUSDT',
+        timeframe: '1m'
+      }
+    })
+
+    const component = wrapper.vm as any
+    component.scrollToLive()
+
+    expect(scrollToLiveSpy).toHaveBeenCalled()
   })
 })
 

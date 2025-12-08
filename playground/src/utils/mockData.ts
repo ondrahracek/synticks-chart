@@ -26,8 +26,7 @@ export function generateSampleData(count: number = 50): Candle[] {
   return candles
 }
 
-export function generateRandomCandle(): Candle {
-  const timestamp = Date.now()
+export function generateRandomCandle(timestamp?: number): Candle {
   const basePrice = 50000 + (Math.random() - 0.5) * 1000
   const open = basePrice
   const close = open + (Math.random() - 0.5) * 500
@@ -36,7 +35,7 @@ export function generateRandomCandle(): Candle {
   const volume = Math.random() * 1000
 
   return {
-    timestamp,
+    timestamp: timestamp ?? Date.now(),
     open,
     high,
     low,

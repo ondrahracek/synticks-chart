@@ -7,6 +7,7 @@ const MIN_CANDLE_WIDTH_PX = 8
 const MAX_CANDLE_WIDTH_PX = 100
 const MAX_INITIAL_CANDLES = 400
 const CANDLE_WIDTH_USAGE = 0.8
+const VIEWPORT_AT_LATEST_THRESHOLD = 0.05
 
 export interface Viewport {
   from: number
@@ -264,5 +265,29 @@ export function createViewportFromLastCandles(
 
   const lastCandles = candles.slice(-count)
   return createViewportFromCandles(lastCandles, widthPx, heightPx)
+}
+
+export function isViewportAtLatest(viewport: Viewport, candles: Candle[]): boolean {
+  if (candles.length === 0) return false
+  
+  const latestCandleTime = candles[candles.length - 1].timestamp
+  const viewportEndTime = viewport.to
+  const timePadding = (viewport.to - viewport.from) * VIEWPORT_AT_LATEST_THRESHOLD
+  
+  return latestCandleTime <= viewportEndTime + timePadding
+}
+
+export function panToLatest(viewport: Viewport, candles: Candle[]): Viewport {
+  if (candles.length === 0) return viewport
+  
+  const latestCandleTime = candles[candles.length - 1].timestamp
+  const timeSpan = viewport.to - viewport.from
+  const timePadding = timeSpan > 0 ? timeSpan * DEFAULT_TIME_PADDING_PERCENT : DEFAULT_TIME_PADDING_MS
+  
+  return {
+    ...viewport,
+    from: latestCandleTime - timeSpan + timePadding,
+    to: latestCandleTime + timePadding
+  }
 }
 

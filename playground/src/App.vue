@@ -5,11 +5,10 @@ import ControlPanel from './components/ControlPanel.vue'
 import StatusPanel from './components/StatusPanel.vue'
 import { usePlaygroundState } from './composables/usePlaygroundState'
 import { generateSampleData, generateRandomCandle } from './utils/mockData'
-import { ThemeName } from 'synticks-chart'
+import { ThemeName, timeframeToMs, type Candle } from 'synticks-chart'
 
 const chartRef = ref<InstanceType<typeof SynticksChart> | null>(null)
 const { symbol, timeframe } = usePlaygroundState()
-const isPlaying = ref(false)
 const activeTool = ref<string>('pan')
 const theme = ref<ThemeName>('light')
 const indicators = ref({
@@ -22,7 +21,7 @@ const labelPaddingEnabled = ref(true)
 const devState = ref({
   symbol: 'BTCUSDT',
   timeframe: '1m',
-  playback: 'live',
+  autoScrollEnabled: true,
   candlesCount: 0,
   drawingsCount: 0,
   indicatorsCount: 0
@@ -33,13 +32,15 @@ let stateUpdateInterval: number | null = null
 function updateDevState() {
   if (chartRef.value?.getState) {
     const state = chartRef.value.getState()
+    if (state) {
     devState.value = {
       symbol: state.symbol || symbol.value,
       timeframe: state.timeframe || timeframe.value,
-      playback: state.playback || 'live',
+        autoScrollEnabled: state.autoScrollEnabled ?? true,
       candlesCount: state.candles?.length || 0,
       drawingsCount: state.drawings?.length || 0,
       indicatorsCount: state.indicatorsCount || 0
+      }
     }
   }
 }
@@ -57,16 +58,6 @@ onUnmounted(() => {
   }
 })
 
-function handlePlay() {
-  chartRef.value?.play()
-  isPlaying.value = true
-}
-
-function handlePause() {
-  chartRef.value?.pause()
-  isPlaying.value = false
-}
-
 function handleGoLive() {
   chartRef.value?.scrollToLive?.()
 }
@@ -80,8 +71,23 @@ function handleResetData() {
   chartRef.value?.resetData?.()
 }
 
+function calculateNextCandleTimestamp(candles: Candle[], currentTimeframe: string): number {
+  if (candles.length === 0) {
+    return Date.now()
+  }
+  
+  const latestTimestamp = candles[candles.length - 1].timestamp
+  const timeframeDuration = timeframeToMs(currentTimeframe as any)
+  return latestTimestamp + timeframeDuration
+}
+
 function handleAddRandomCandle() {
-  const candle = generateRandomCandle()
+  const state = chartRef.value?.getState?.()
+  const candles = state?.candles || []
+  const currentTimeframe = state?.timeframe || timeframe.value
+
+  const nextTimestamp = calculateNextCandleTimestamp(candles, currentTimeframe)
+  const candle = generateRandomCandle(nextTimestamp)
   chartRef.value?.appendCandle?.(candle)
 }
 
@@ -119,10 +125,10 @@ function handleToggleLabelPadding() {
 <template>
   <div class="app-root" style="width: 100vw; height: 100vh; box-sizing: border-box;">
     <div class="app-layout" style="display:flex; flex-direction:column; height:100%;">
-      <ControlPanel :symbol="symbol" :timeframe="timeframe" :is-playing="isPlaying" :active-tool="activeTool"
+      <ControlPanel :symbol="symbol" :timeframe="timeframe" :active-tool="activeTool"
         :indicators="indicators" :theme="theme" :label-padding-enabled="labelPaddingEnabled"
         @update:symbol="symbol = $event" @update:timeframe="timeframe = $event"
-        @play="handlePlay" @pause="handlePause" @live="handleGoLive" @load-sample="handleLoadSample"
+        @live="handleGoLive" @load-sample="handleLoadSample"
         @reset-data="handleResetData" @add-random-candle="handleAddRandomCandle" @set-tool="handleSetTool"
         @clear-drawings="handleClearDrawings" @toggle-indicator="handleToggleIndicator" @set-theme="handleSetTheme"
         @toggle-label-padding="handleToggleLabelPadding" />

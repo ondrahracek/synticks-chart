@@ -33,7 +33,7 @@ describe('StatusPanel', () => {
     }))
     
     getState.mockReturnValue({
-      playback: 'live',
+      autoScrollEnabled: true,
       candles: mockCandles,
       symbol: 'BTCUSDT',
       timeframe: '1m',
@@ -53,9 +53,9 @@ describe('StatusPanel', () => {
     expect(statusPanel.text()).toContain('Candles')
   })
 
-  it('displays playback mode', async () => {
+  it('displays auto-scroll status', async () => {
     getState.mockReturnValue({
-      playback: 'live',
+      autoScrollEnabled: true,
       candles: [],
       symbol: 'BTCUSDT',
       timeframe: '1m',
@@ -68,12 +68,12 @@ describe('StatusPanel', () => {
     await new Promise(resolve => setTimeout(resolve, 150))
 
     const statusPanel = wrapper.find('[data-test="status-panel"]')
-    expect(statusPanel.text()).toContain('LIVE')
+    expect(statusPanel.text()).toContain('Auto-scroll: enabled')
   })
 
   it('displays symbol and timeframe', async () => {
     getState.mockReturnValue({
-      playback: 'live',
+      autoScrollEnabled: true,
       candles: [],
       symbol: 'ETHUSDT',
       timeframe: '5m',
@@ -92,7 +92,7 @@ describe('StatusPanel', () => {
 
   it('displays drawings and indicators count', async () => {
     getState.mockReturnValue({
-      playback: 'live',
+      autoScrollEnabled: true,
       candles: [],
       symbol: 'BTCUSDT',
       timeframe: '1m',

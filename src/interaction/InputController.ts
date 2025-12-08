@@ -1,6 +1,7 @@
 import type { ChartState } from '../core/state'
-import { panViewport, zoomViewport, zoomViewportWithBounds, xToTime, yToPrice, getDataTimeRange } from '../core/viewport'
+import { panViewport, zoomViewport, zoomViewportWithBounds, xToTime, yToPrice, getDataTimeRange, type Viewport } from '../core/viewport'
 import { startDrawing, updateDrawing, finishDrawing } from '../core/drawings'
+import type { AutoScrollController } from '../core/auto-scroll'
 
 export class InputController {
   private isDragging = false
@@ -11,7 +12,8 @@ export class InputController {
   constructor(
     private canvas: HTMLCanvasElement,
     private getState: () => ChartState,
-    private updateState: (partial: Partial<ChartState>) => void
+    private updateState: (partial: Partial<ChartState>) => void,
+    private autoScrollController?: AutoScrollController
   ) {
     this.attachListeners()
   }
@@ -58,7 +60,21 @@ export class InputController {
     if (mode === 'pan' && this.isDragging && state.viewport) {
       const deltaX = e.clientX - this.lastX
       const newViewport = panViewport(state.viewport, deltaX)
-      this.updateState({ viewport: newViewport })
+      
+      if (deltaX > 0 && this.autoScrollController) {
+        this.autoScrollController.disableAutoScroll()
+        this.updateState({ viewport: newViewport, autoScrollEnabled: false })
+      } else if (deltaX < 0 && this.autoScrollController && state.candles) {
+        this.autoScrollController.updateAutoScrollState(newViewport, state.candles)
+        if (state.autoScrollEnabled) {
+          this.updateState({ viewport: newViewport, autoScrollEnabled: true })
+        } else {
+          this.updateState({ viewport: newViewport })
+        }
+      } else {
+        this.updateState({ viewport: newViewport })
+      }
+      
       this.lastX = e.clientX
     } else if (this.currentDrawing && (mode === 'draw-trendline' || mode === 'draw-horizontal')) {
       const endPoint = this.screenToPoint(e.clientX, e.clientY, state)
@@ -121,8 +137,9 @@ export class InputController {
     const candles = state.candles || []
     const dataRange = getDataTimeRange(candles)
     
+    let newViewport: Viewport
     if (dataRange) {
-      const newViewport = zoomViewportWithBounds(
+      newViewport = zoomViewportWithBounds(
         state.viewport,
         zoomFactor,
         anchorTime,
@@ -130,9 +147,18 @@ export class InputController {
         dataRange.maxTime,
         candles
       )
-      this.updateState({ viewport: newViewport })
     } else {
-      const newViewport = zoomViewport(state.viewport, zoomFactor, anchorTime)
+      newViewport = zoomViewport(state.viewport, zoomFactor, anchorTime)
+    }
+
+    if (this.autoScrollController && candles.length > 0) {
+      this.autoScrollController.updateAutoScrollState(newViewport, candles)
+      if (state.autoScrollEnabled) {
+        this.updateState({ viewport: newViewport, autoScrollEnabled: true })
+      } else {
+        this.updateState({ viewport: newViewport })
+      }
+    } else {
       this.updateState({ viewport: newViewport })
     }
   }
@@ -208,8 +234,9 @@ export class InputController {
         const candles = state.candles || []
         const dataRange = getDataTimeRange(candles)
         
+        let newViewport: Viewport
         if (dataRange) {
-          const newViewport = zoomViewportWithBounds(
+          newViewport = zoomViewportWithBounds(
             state.viewport,
             scale,
             anchorTime,
@@ -217,9 +244,18 @@ export class InputController {
             dataRange.maxTime,
             candles
           )
-          this.updateState({ viewport: newViewport })
         } else {
-          const newViewport = zoomViewport(state.viewport, scale, anchorTime)
+          newViewport = zoomViewport(state.viewport, scale, anchorTime)
+        }
+
+        if (this.autoScrollController && candles.length > 0) {
+          this.autoScrollController.updateAutoScrollState(newViewport, candles)
+          if (state.autoScrollEnabled) {
+            this.updateState({ viewport: newViewport, autoScrollEnabled: true })
+          } else {
+            this.updateState({ viewport: newViewport })
+          }
+        } else {
           this.updateState({ viewport: newViewport })
         }
       }

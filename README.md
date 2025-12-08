@@ -132,7 +132,8 @@ interface Props {
 - Adds a single candle to the end
 - Appends to existing data
 - Recalculates indicators
-- Does not auto-pan (user must pan manually)
+- Auto-scrolls to latest candle if auto-scroll is enabled (enabled by default)
+- Multiple rapid calls are batched (scrolls once to final position)
 
 **`resetData(): void`**
 
@@ -140,6 +141,12 @@ interface Props {
 - Removes all candles
 - Clears viewport
 - Indicators remain registered (but have no data)
+
+**`scrollToLive(): void`**
+
+- Scrolls viewport to show latest candle
+- Enables auto-scroll
+- Smoothly animates to latest position
 
 #### Indicators
 
@@ -210,13 +217,27 @@ chartRef.value?.setLabelPadding(true);
 chartRef.value?.setLabelPadding(false);
 ```
 
-#### Playback Control
+#### Auto-Scroll
 
-**`play(): void`** / **`pause(): void`**
+Auto-scroll is enabled by default. When enabled, the chart automatically scrolls to show the latest candle when new data arrives.
 
-Controls playback state.
+**Behavior:**
 
-> **Note:** These control internal state only. You still need to call `appendCandle()` to add data.
+- Enabled by default when `loadCandles()` is called
+- Automatically disabled when user pans left (scrolling back in history)
+- Automatically re-enabled when user scrolls to the end or calls `scrollToLive()`
+- Multiple `appendCandle()` calls are batched (one smooth scroll to final position)
+
+**Manual Control:**
+
+```typescript
+// Scroll to latest candle
+chartRef.value?.scrollToLive();
+
+// Check auto-scroll state
+const state = chartRef.value?.getState();
+console.log(state?.autoScrollEnabled); // true or false
+```
 
 #### State Access
 
@@ -228,6 +249,8 @@ Gets current chart state.
 const state = chartRef.value?.getState();
 console.log(state?.candles.length); // Number of candles
 console.log(state?.indicatorsCount); // Number of indicators
+console.log(state?.autoScrollEnabled); // Auto-scroll state
+console.log(state?.viewport); // Current viewport (time range)
 ```
 
 ## Important Requirements & Constraints
@@ -295,8 +318,9 @@ onBeforeUnmount(() => {
 
 - **Panning:** Click and drag to pan
 - **Zooming:** Mouse wheel or pinch gesture (constrained to 8px-100px candle width)
+- **Auto-scroll:** Automatically scrolls to latest candle when new data arrives (default: enabled)
 - **Responsive:** Automatically fills container and resizes with container (no CSS import needed)
-- **Smooth animations:** Automatic interpolation
+- **Smooth animations:** Viewport changes are smoothly animated (pan, zoom, scroll)
 - **Grid:** Auto-generated price and time grid
 - **Labels:** Auto-formatted price and time labels
 
@@ -310,8 +334,10 @@ onBeforeUnmount(() => {
 ### What Happens Automatically
 
 - **Viewport creation:** When you call `loadCandles()`, shows recent candles (last 150 by default)
+- **Auto-scroll:** Automatically scrolls to latest candle when new data arrives (enabled by default)
 - **Indicator calculation:** When candles are added/removed
 - **Rendering:** Continuous via animation loop
+- **Smooth animations:** Viewport changes (pan, zoom, scroll) are smoothly animated
 - **Event handling:** Pan, zoom, draw handled internally
 
 ## Common Use Cases
@@ -329,7 +355,13 @@ chartRef.value?.loadCandles(historicalCandles);
 // On new candle received
 socket.on("candle", (candle: Candle) => {
   chartRef.value?.appendCandle(candle);
+  // Chart automatically scrolls to latest candle (auto-scroll enabled by default)
 });
+
+// Manual control: scroll to latest
+function goToLive() {
+  chartRef.value?.scrollToLive();
+}
 ```
 
 ### 3. Add Moving Average

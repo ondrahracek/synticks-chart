@@ -3,6 +3,7 @@ import { InputController } from '../../src/interaction/InputController'
 import type { ChartState } from '../../src/core/state'
 import type { Viewport } from '../../src/core/viewport'
 import { createChartState } from '../../src/core/state'
+import { AutoScrollController } from '../../src/core/auto-scroll'
 
 describe('InputController', () => {
   let canvas: HTMLCanvasElement
@@ -184,6 +185,165 @@ describe('InputController', () => {
     expect(currentDrawingCall).toBeDefined()
     expect(currentDrawingCall![0].currentDrawing?.kind).toBe('trendline')
     expect(currentDrawingCall![0].currentDrawing?.points.length).toBe(2)
+  })
+
+  it('panning left disables autoScrollEnabled', () => {
+    const state: ChartState = {
+      ...createChartState(),
+      viewport: {
+        from: 1000,
+        to: 2000,
+        widthPx: 800,
+        heightPx: 600
+      },
+      candles: [
+        { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+        { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 },
+        { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 }
+      ]
+    }
+    getState = vi.fn(() => state)
+    updateState = vi.fn()
+    const autoScrollController = new AutoScrollController(state)
+    controller = new InputController(canvas, getState, updateState, autoScrollController)
+
+    const pointerDown = new PointerEvent('pointerdown', {
+      clientX: 400,
+      clientY: 300,
+      pointerId: 1
+    })
+    canvas.dispatchEvent(pointerDown)
+
+    const pointerMove = new PointerEvent('pointermove', {
+      clientX: 450,
+      clientY: 300,
+      pointerId: 1
+    })
+    canvas.dispatchEvent(pointerMove)
+
+    expect(updateState).toHaveBeenCalled()
+    const calls = updateState.mock.calls
+    const stateUpdate = calls.find(call => call[0].autoScrollEnabled !== undefined)
+    expect(stateUpdate).toBeDefined()
+    expect(stateUpdate![0].autoScrollEnabled).toBe(false)
+  })
+
+  it('panning right checks and re-enables autoScroll if at latest', () => {
+    const state: ChartState = {
+      ...createChartState(),
+      viewport: {
+        from: 2000,
+        to: 3200,
+        widthPx: 800,
+        heightPx: 600
+      },
+      candles: [
+        { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+        { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 },
+        { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 }
+      ],
+      autoScrollEnabled: false
+    }
+    getState = vi.fn(() => state)
+    updateState = vi.fn()
+    const autoScrollController = new AutoScrollController(state)
+    controller = new InputController(canvas, getState, updateState, autoScrollController)
+
+    const pointerDown = new PointerEvent('pointerdown', {
+      clientX: 400,
+      clientY: 300,
+      pointerId: 1
+    })
+    canvas.dispatchEvent(pointerDown)
+
+    const pointerMove = new PointerEvent('pointermove', {
+      clientX: 350,
+      clientY: 300,
+      pointerId: 1
+    })
+    canvas.dispatchEvent(pointerMove)
+
+    expect(updateState).toHaveBeenCalled()
+    const calls = updateState.mock.calls
+    const stateUpdate = calls.find(call => call[0].autoScrollEnabled === true)
+    expect(stateUpdate).toBeDefined()
+  })
+
+  it('zooming out checks and updates autoScroll state', () => {
+    const state: ChartState = {
+      ...createChartState(),
+      viewport: {
+        from: 2000,
+        to: 3200,
+        widthPx: 800,
+        heightPx: 600
+      },
+      candles: [
+        { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+        { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 },
+        { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 }
+      ],
+      autoScrollEnabled: false
+    }
+    getState = vi.fn(() => state)
+    updateState = vi.fn()
+    const autoScrollController = new AutoScrollController(state)
+    controller = new InputController(canvas, getState, updateState, autoScrollController)
+
+    const wheelEvent = new WheelEvent('wheel', {
+      deltaY: -100,
+      clientX: 400,
+      clientY: 300
+    })
+    canvas.dispatchEvent(wheelEvent)
+
+    expect(updateState).toHaveBeenCalled()
+    const calls = updateState.mock.calls
+    const viewportCall = calls.find(call => call[0].viewport)
+    expect(viewportCall).toBeDefined()
+  })
+
+  it('touch pinch zoom updates autoScroll state', () => {
+    const state: ChartState = {
+      ...createChartState(),
+      viewport: {
+        from: 2000,
+        to: 3200,
+        widthPx: 800,
+        heightPx: 600
+      },
+      candles: [
+        { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+        { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 },
+        { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 }
+      ],
+      autoScrollEnabled: false
+    }
+    getState = vi.fn(() => state)
+    updateState = vi.fn()
+    const autoScrollController = new AutoScrollController(state)
+    controller = new InputController(canvas, getState, updateState, autoScrollController)
+
+    const touchStart = new TouchEvent('touchstart', {
+      touches: [
+        { clientX: 200, clientY: 300 } as Touch,
+        { clientX: 400, clientY: 300 } as Touch
+      ]
+    })
+    canvas.dispatchEvent(touchStart)
+
+    const touchMove = new TouchEvent('touchmove', {
+      touches: [
+        { clientX: 150, clientY: 300 } as Touch,
+        { clientX: 450, clientY: 300 } as Touch
+      ]
+    })
+    canvas.dispatchEvent(touchMove)
+
+    expect(updateState).toHaveBeenCalled()
+    const calls = updateState.mock.calls
+    const viewportCall = calls.find(call => call[0].viewport)
+    expect(viewportCall).toBeDefined()
   })
 })
 

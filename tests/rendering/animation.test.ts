@@ -72,16 +72,14 @@ describe('Animation helpers', () => {
         candles: [
           { timestamp: 1000, open: 100, high: 105, low: 99, close: 100, volume: 1000 }
         ],
-        missedCandles: [],
-        playback: 'live'
+        autoScrollEnabled: true
       }
       const next: ChartState = {
         candles: [
           { timestamp: 1000, open: 100, high: 105, low: 99, close: 100, volume: 1000 },
           { timestamp: 2000, open: 100, high: 105, low: 99, close: 105, volume: 1000 }
         ],
-        missedCandles: [],
-        playback: 'live'
+        autoScrollEnabled: true
       }
 
       const result = lerpChartState(prev, next, 0.5)

@@ -1,6 +1,6 @@
-import type { TimeframeId, Candle, PlaybackMode } from '../core/types'
+import type { TimeframeId, Candle } from '../core/types'
 import { createChartState, type ChartState, type InteractionMode } from '../core/state'
-import { PlaybackController } from '../core/playback'
+import { AutoScrollController } from '../core/auto-scroll'
 import { ChartRenderer } from '../rendering/ChartRenderer'
 import { AnimationLoop } from '../rendering/AnimationLoop'
 import { InputController } from '../interaction/InputController'
@@ -8,7 +8,7 @@ import { IndicatorRegistry } from '../core/indicators'
 import type { ThemeName } from '../core/theme'
 import { getTheme } from '../core/theme'
 import type { DrawingShape } from '../core/drawings'
-import { createViewportFromCandles, updateViewportDimensions, calculateInitialCandleCount, createViewportFromLastCandles } from '../core/viewport'
+import { createViewportFromCandles, updateViewportDimensions, calculateInitialCandleCount, createViewportFromLastCandles, panToLatest } from '../core/viewport'
 import type { Viewport } from '../core/viewport'
 import { getDefaultLabelPadding } from '../rendering/padding'
 
@@ -21,7 +21,7 @@ export class ChartEngine {
   private state: ChartState
   private renderer: ChartRenderer
   private animationLoop: AnimationLoop
-  private playbackController: PlaybackController
+  private autoScrollController: AutoScrollController
   private inputController: InputController
   private indicatorRegistry: IndicatorRegistry
   private symbol: string
@@ -35,7 +35,7 @@ export class ChartEngine {
     this.state = createChartState()
     this.renderer = new ChartRenderer(canvas)
     this.animationLoop = new AnimationLoop(this.renderer)
-    this.playbackController = new PlaybackController(this.state)
+    this.autoScrollController = new AutoScrollController(this.state)
     this.indicatorRegistry = new IndicatorRegistry()
     
     this.inputController = new InputController(
@@ -44,7 +44,8 @@ export class ChartEngine {
       (partial) => {
         this.state = { ...this.state, ...partial }
         this.animationLoop.setTargetState(this.state)
-      }
+      },
+      this.autoScrollController
     )
 
     this.animationLoop.start()
@@ -56,14 +57,6 @@ export class ChartEngine {
 
   setTimeframe(tf: TimeframeId): void {
     this.timeframe = tf
-  }
-
-  play(): void {
-    this.playbackController.play()
-  }
-
-  pause(): void {
-    this.playbackController.pause()
   }
 
   addIndicator(id: string, inputs: Record<string, unknown>): void {
@@ -145,6 +138,7 @@ export class ChartEngine {
 
   loadCandles(candles: Candle[]): void {
     this.state.candles = candles
+    this.state.autoScrollEnabled = true
     this.recalculateViewport()
     this.recalculateAllIndicators()
     this.animationLoop.setTargetState(this.state)
@@ -152,15 +146,40 @@ export class ChartEngine {
 
   resetData(): void {
     this.state.candles = []
-    this.state.missedCandles = []
     this.state.viewport = undefined
     this.animationLoop.setTargetState(this.state)
   }
 
+  private pendingScrollUpdate: number | null = null
+
   appendCandle(candle: Candle): void {
     this.state.candles.push(candle)
     this.recalculateAllIndicators()
-    this.animationLoop.setTargetState(this.state)
+    
+    if (this.state.autoScrollEnabled && this.state.viewport) {
+      if (this.pendingScrollUpdate === null) {
+        this.pendingScrollUpdate = requestAnimationFrame(() => {
+          if (this.state.autoScrollEnabled && this.state.viewport) {
+            const renderer = (this.animationLoop as any).renderer as any
+            const rendererState = renderer.getState()
+            const prevStateForAnimation = rendererState ? this.deepCloneState(rendererState) : undefined
+            
+            const newViewport = panToLatest(this.state.viewport, this.state.candles)
+            
+            this.state = {
+              ...this.state,
+              viewport: newViewport
+            }
+            
+            this.animationLoop.setTargetState(this.state, prevStateForAnimation || undefined)
+          }
+          this.pendingScrollUpdate = null
+        })
+      }
+      this.animationLoop.setTargetState(this.state)
+    } else {
+      this.animationLoop.setTargetState(this.state)
+    }
   }
 
   setDrawingMode(mode: InteractionMode): void {
@@ -192,10 +211,58 @@ export class ChartEngine {
     this.animationLoop.setTargetState(this.state)
   }
 
+  scrollToLive(): void {
+    if (this.state.viewport) {
+      // Cancel any pending scroll updates from appendCandle
+      if (this.pendingScrollUpdate !== null) {
+        cancelAnimationFrame(this.pendingScrollUpdate)
+        this.pendingScrollUpdate = null
+      }
+
+      const renderer = (this.animationLoop as any).renderer as any
+      const rendererState = renderer.getState()
+      
+      const prevStateForAnimation = rendererState ? this.deepCloneState(rendererState) : undefined
+      
+      const newViewport = this.autoScrollController.scrollToLive(this.state.viewport, this.state.candles)
+      
+      // Create new state object (consistent with InputController.updateState pattern)
+      // This ensures state references are consistent across all components
+      this.state = {
+        ...this.state,
+        viewport: newViewport,
+        autoScrollEnabled: true
+      }
+      
+      this.animationLoop.setTargetState(this.state, prevStateForAnimation || undefined)
+    }
+  }
+
+  private deepCloneState(state: ChartState): ChartState {
+    return {
+      ...state,
+      candles: [...state.candles],
+      viewport: state.viewport ? { ...state.viewport } : undefined,
+      crosshair: state.crosshair ? { ...state.crosshair } : undefined,
+      drawings: state.drawings ? [...state.drawings] : undefined,
+      currentDrawing: state.currentDrawing ? { ...state.currentDrawing } : undefined,
+      indicators: state.indicators ? state.indicators.map(ind => ({
+        ...ind,
+        values: [...ind.values],
+        timestamps: [...ind.timestamps]
+      })) : undefined,
+      theme: state.theme ? { ...state.theme } : undefined,
+      layout: state.layout ? {
+        ...state.layout,
+        labelPadding: state.layout.labelPadding ? { ...state.layout.labelPadding } : undefined
+      } : undefined
+    }
+  }
+
   getState(): {
     symbol: string
     timeframe: TimeframeId
-    playback: PlaybackMode | 'live'
+    autoScrollEnabled: boolean
     candles: Candle[]
     drawings?: DrawingShape[]
     indicators?: import('../core/state').IndicatorData[]
@@ -206,7 +273,7 @@ export class ChartEngine {
     return {
       symbol: this.symbol,
       timeframe: this.timeframe,
-      playback: this.state.playback,
+      autoScrollEnabled: this.state.autoScrollEnabled,
       candles: this.state.candles,
       drawings: this.state.drawings,
       indicators: this.state.indicators,
@@ -217,6 +284,10 @@ export class ChartEngine {
   }
 
   destroy(): void {
+    if (this.pendingScrollUpdate !== null) {
+      cancelAnimationFrame(this.pendingScrollUpdate)
+      this.pendingScrollUpdate = null
+    }
     this.animationLoop.stop()
   }
 }

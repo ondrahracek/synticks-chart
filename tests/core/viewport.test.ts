@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { timeToX, xToTime, priceToY, yToPrice, panViewport, zoomViewport, createViewportFromCandles, updateViewportDimensions, getDataTimeRange, clampViewportToRange, zoomViewportWithBounds, filterCandlesByViewport, calculateInitialCandleCount, createViewportFromLastCandles } from '../../src/core/viewport'
+import { timeToX, xToTime, priceToY, yToPrice, panViewport, zoomViewport, createViewportFromCandles, updateViewportDimensions, getDataTimeRange, clampViewportToRange, zoomViewportWithBounds, filterCandlesByViewport, calculateInitialCandleCount, createViewportFromLastCandles, isViewportAtLatest, panToLatest } from '../../src/core/viewport'
 import type { Viewport } from '../../src/core/viewport'
 import type { Candle } from '../../src/core/types'
 
@@ -464,6 +464,118 @@ describe('zoomViewportWithBounds with minimum candle width', () => {
     const avgTimeInterval = 60000
     const minAllowedSpan = (avgTimeInterval * viewport.widthPx * 0.8) / 100
     expect(timeSpan).toBeGreaterThanOrEqual(minAllowedSpan)
+  })
+})
+
+describe('isViewportAtLatest', () => {
+  it('returns true when viewport shows latest candle', () => {
+    const candles: Candle[] = [
+      { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+      { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 },
+      { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 }
+    ]
+    const viewport: Viewport = {
+      from: 1000,
+      to: 3100,
+      widthPx: 800,
+      heightPx: 600
+    }
+
+    const result = isViewportAtLatest(viewport, candles)
+
+    expect(result).toBe(true)
+  })
+
+  it('returns false when viewport is before latest candle', () => {
+    const candles: Candle[] = [
+      { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+      { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 },
+      { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 }
+    ]
+    const viewport: Viewport = {
+      from: 1000,
+      to: 2500,
+      widthPx: 800,
+      heightPx: 600
+    }
+
+    const result = isViewportAtLatest(viewport, candles)
+
+    expect(result).toBe(false)
+  })
+
+  it('returns false when candles array is empty', () => {
+    const candles: Candle[] = []
+    const viewport: Viewport = {
+      from: 1000,
+      to: 2000,
+      widthPx: 800,
+      heightPx: 600
+    }
+
+    const result = isViewportAtLatest(viewport, candles)
+
+    expect(result).toBe(false)
+  })
+})
+
+describe('panToLatest', () => {
+  it('moves viewport to show latest candle', () => {
+    const candles: Candle[] = [
+      { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+      { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 },
+      { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 }
+    ]
+    const viewport: Viewport = {
+      from: 500,
+      to: 1500,
+      widthPx: 800,
+      heightPx: 600
+    }
+
+    const result = panToLatest(viewport, candles)
+
+    expect(result.to).toBeGreaterThanOrEqual(3000)
+    expect(result.widthPx).toBe(viewport.widthPx)
+    expect(result.heightPx).toBe(viewport.heightPx)
+    const timeSpan = result.to - result.from
+    expect(timeSpan).toBe(viewport.to - viewport.from)
+  })
+
+  it('returns viewport unchanged when candles array is empty', () => {
+    const candles: Candle[] = []
+    const viewport: Viewport = {
+      from: 1000,
+      to: 2000,
+      widthPx: 800,
+      heightPx: 600
+    }
+
+    const result = panToLatest(viewport, candles)
+
+    expect(result).toEqual(viewport)
+  })
+
+  it('adds padding after the latest candle', () => {
+    const candles: Candle[] = [
+      { timestamp: 1000, open: 100, high: 105, low: 99, close: 103, volume: 1000 },
+      { timestamp: 2000, open: 103, high: 107, low: 102, close: 106, volume: 1200 },
+      { timestamp: 3000, open: 106, high: 108, low: 104, close: 105, volume: 1100 }
+    ]
+    const viewport: Viewport = {
+      from: 500,
+      to: 1500,
+      widthPx: 800,
+      heightPx: 600
+    }
+
+    const result = panToLatest(viewport, candles)
+    const latestCandleTime = 3000
+    const timeSpan = viewport.to - viewport.from
+
+    expect(result.to).toBeGreaterThan(latestCandleTime)
+    const padding = result.to - latestCandleTime
+    expect(padding).toBe(timeSpan * 0.1)
   })
 })
 

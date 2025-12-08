@@ -1,4 +1,4 @@
-import type { Candle, PlaybackMode } from './types'
+import type { Candle } from './types'
 import type { Viewport } from './viewport'
 import type { DrawingShape } from './drawings'
 import type { Theme } from './theme'
@@ -26,8 +26,7 @@ export interface LayoutConfig {
 
 export interface ChartState {
   candles: Candle[]
-  missedCandles: Candle[]
-  playback: PlaybackMode | 'live'
+  autoScrollEnabled: boolean
   viewport?: Viewport
   crosshair?: Crosshair
   drawings?: DrawingShape[]
@@ -41,8 +40,7 @@ export interface ChartState {
 export function createChartState(): ChartState {
   return {
     candles: [],
-    missedCandles: [],
-    playback: 'live',
+    autoScrollEnabled: true,
     layout: {
       labelPadding: {
         enabled: true
