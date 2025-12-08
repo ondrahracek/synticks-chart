@@ -192,6 +192,24 @@ Sets chart theme.
 chartRef.value?.setTheme("dark");
 ```
 
+#### Label Padding
+
+**`setLabelPadding(enabled: boolean): void`**
+
+Controls label padding, which reserves space for axis labels to prevent clipping.
+
+- **Enabled by default** - Labels are automatically positioned in reserved padding areas
+- When enabled: Reserves 60px on the left and 30px at the bottom for labels
+- When disabled: Labels may be clipped if they extend beyond the chart area
+
+```typescript
+// Enable label padding
+chartRef.value?.setLabelPadding(true);
+
+// Disable label padding
+chartRef.value?.setLabelPadding(false);
+```
+
 #### Playback Control
 
 **`play(): void`** / **`pause(): void`**
