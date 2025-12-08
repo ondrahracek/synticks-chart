@@ -127,7 +127,8 @@ export class InputController {
         zoomFactor,
         anchorTime,
         dataRange.minTime,
-        dataRange.maxTime
+        dataRange.maxTime,
+        candles
       )
       this.updateState({ viewport: newViewport })
     } else {
@@ -213,7 +214,8 @@ export class InputController {
             scale,
             anchorTime,
             dataRange.minTime,
-            dataRange.maxTime
+            dataRange.maxTime,
+            candles
           )
           this.updateState({ viewport: newViewport })
         } else {

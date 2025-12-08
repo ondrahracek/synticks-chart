@@ -149,6 +149,31 @@ describe('ChartEngine', () => {
     expect(state.viewport?.heightPx).toBe(570)
   })
 
+  it('creates viewport showing only last N candles when loading many candles', () => {
+    const engine = new ChartEngine(canvas, { symbol: 'BTCUSDT', timeframe: '1m' })
+    const candles: Candle[] = []
+    for (let i = 0; i < 500; i++) {
+      candles.push({
+        timestamp: 1000 + i * 60000,
+        open: 100,
+        high: 110,
+        low: 90,
+        close: 105,
+        volume: 1000
+      })
+    }
+    
+    engine.loadCandles(candles)
+    const state = engine.getState()
+    
+    expect(state.candles.length).toBe(500)
+    expect(state.viewport).toBeDefined()
+    const lastCandleTime = candles[candles.length - 1].timestamp
+    expect(state.viewport!.to).toBeGreaterThan(lastCandleTime)
+    const firstCandleTime = candles[0].timestamp
+    expect(state.viewport!.from).toBeGreaterThan(firstCandleTime)
+  })
+
   it('clears viewport when resetting data', () => {
     const engine = new ChartEngine(canvas, { symbol: 'BTCUSDT', timeframe: '1m' })
     const candles: Candle[] = [

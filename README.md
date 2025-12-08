@@ -124,7 +124,7 @@ interface Props {
 
 - Loads candle data and auto-fits the viewport
 - Replaces all existing data
-- Auto-creates viewport to show all candles
+- Auto-creates viewport to show the last N candles (typically 150, adapts to screen size)
 - Recalculates indicators
 
 **`appendCandle(candle: Candle): void`**
@@ -294,8 +294,8 @@ onBeforeUnmount(() => {
 ### Automatic Features (No Code Required)
 
 - **Panning:** Click and drag to pan
-- **Zooming:** Mouse wheel or pinch gesture
-- **Responsive:** Resizes with container
+- **Zooming:** Mouse wheel or pinch gesture (constrained to 8px-100px candle width)
+- **Responsive:** Automatically fills container and resizes with container (no CSS import needed)
 - **Smooth animations:** Automatic interpolation
 - **Grid:** Auto-generated price and time grid
 - **Labels:** Auto-formatted price and time labels
@@ -309,7 +309,7 @@ onBeforeUnmount(() => {
 
 ### What Happens Automatically
 
-- **Viewport creation:** When you call `loadCandles()`
+- **Viewport creation:** When you call `loadCandles()`, shows recent candles (last 150 by default)
 - **Indicator calculation:** When candles are added/removed
 - **Rendering:** Continuous via animation loop
 - **Event handling:** Pan, zoom, draw handled internally

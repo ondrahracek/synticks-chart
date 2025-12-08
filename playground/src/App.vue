@@ -72,7 +72,7 @@ function handleGoLive() {
 }
 
 function handleLoadSample() {
-  const candles = generateSampleData()
+  const candles = generateSampleData(300)
   chartRef.value?.loadCandles?.(candles)
 }
 

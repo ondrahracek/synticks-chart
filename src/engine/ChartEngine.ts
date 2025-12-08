@@ -8,7 +8,7 @@ import { IndicatorRegistry } from '../core/indicators'
 import type { ThemeName } from '../core/theme'
 import { getTheme } from '../core/theme'
 import type { DrawingShape } from '../core/drawings'
-import { createViewportFromCandles, updateViewportDimensions } from '../core/viewport'
+import { createViewportFromCandles, updateViewportDimensions, calculateInitialCandleCount, createViewportFromLastCandles } from '../core/viewport'
 import type { Viewport } from '../core/viewport'
 import { getDefaultLabelPadding } from '../rendering/padding'
 
@@ -135,7 +135,8 @@ export class ChartEngine {
       const viewport = updateViewportDimensions(this.state.viewport, effectiveWidth, effectiveHeight)
       this.state.viewport = viewport
     } else {
-      const viewport = createViewportFromCandles(this.state.candles, effectiveWidth, effectiveHeight)
+      const initialCount = calculateInitialCandleCount(effectiveWidth)
+      const viewport = createViewportFromLastCandles(this.state.candles, initialCount, effectiveWidth, effectiveHeight)
       if (viewport) {
         this.state.viewport = viewport
       }

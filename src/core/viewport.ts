@@ -2,6 +2,11 @@ import type { Candle } from './types'
 
 const DEFAULT_TIME_PADDING_PERCENT = 0.1
 const DEFAULT_TIME_PADDING_MS = 60000
+const DEFAULT_INITIAL_CANDLES = 150
+const MIN_CANDLE_WIDTH_PX = 8
+const MAX_CANDLE_WIDTH_PX = 100
+const MAX_INITIAL_CANDLES = 400
+const CANDLE_WIDTH_USAGE = 0.8
 
 export interface Viewport {
   from: number
@@ -97,15 +102,15 @@ export function getDataTimeRange(
   paddingPercent: number = DEFAULT_TIME_PADDING_PERCENT
 ): { minTime: number; maxTime: number } | null {
   if (candles.length === 0) return null
-  
+
   const timestamps = candles.map(c => c.timestamp)
   const minTime = Math.min(...timestamps)
   const maxTime = Math.max(...timestamps)
   const timeSpan = maxTime - minTime
-  const timePadding = timeSpan > 0 
-    ? timeSpan * paddingPercent 
+  const timePadding = timeSpan > 0
+    ? timeSpan * paddingPercent
     : DEFAULT_TIME_PADDING_MS
-  
+
   return {
     minTime: minTime - timePadding,
     maxTime: maxTime + timePadding
@@ -119,7 +124,7 @@ export function clampViewportToRange(
 ): Viewport {
   const timeSpan = viewport.to - viewport.from
   const dataSpan = maxTime - minTime
-  
+
   if (timeSpan >= dataSpan) {
     return {
       ...viewport,
@@ -127,16 +132,16 @@ export function clampViewportToRange(
       to: maxTime
     }
   }
-  
+
   let from = Math.max(viewport.from, minTime)
   let to = from + timeSpan
-  
+
   if (to > maxTime) {
     to = maxTime
     from = to - timeSpan
     from = Math.max(from, minTime)
   }
-  
+
   return {
     ...viewport,
     from,
@@ -149,10 +154,71 @@ export function zoomViewportWithBounds(
   factor: number,
   anchorTime: number,
   minTime: number,
-  maxTime: number
+  maxTime: number,
+  candles?: Candle[]
 ): Viewport {
   const zoomed = zoomViewport(viewport, factor, anchorTime)
-  return clampViewportToRange(zoomed, minTime, maxTime)
+  let clamped = clampViewportToRange(zoomed, minTime, maxTime)
+  
+  if (candles && candles.length > 0) {
+    if (factor < 1) {
+      const maxAllowedSpan = calculateMaxTimeSpanForMinCandleWidth(viewport.widthPx, candles)
+      const currentSpan = clamped.to - clamped.from
+      if (currentSpan > maxAllowedSpan) {
+        const halfSpan = maxAllowedSpan / 2
+        clamped = {
+          ...clamped,
+          from: anchorTime - halfSpan,
+          to: anchorTime + halfSpan
+        }
+        clamped = clampViewportToRange(clamped, minTime, maxTime)
+      }
+    } else if (factor > 1) {
+      const minAllowedSpan = calculateMinTimeSpanForMaxCandleWidth(viewport.widthPx, candles)
+      const currentSpan = clamped.to - clamped.from
+      if (currentSpan < minAllowedSpan) {
+        const halfSpan = minAllowedSpan / 2
+        clamped = {
+          ...clamped,
+          from: anchorTime - halfSpan,
+          to: anchorTime + halfSpan
+        }
+        clamped = clampViewportToRange(clamped, minTime, maxTime)
+      }
+    }
+  }
+  
+  return clamped
+}
+
+function getAverageTimeInterval(candles: Candle[]): number {
+  if (candles.length < 2) {
+    return 0
+  }
+  
+  const timeIntervals: number[] = []
+  for (let i = 1; i < candles.length; i++) {
+    timeIntervals.push(candles[i].timestamp - candles[i - 1].timestamp)
+  }
+  return timeIntervals.reduce((sum, interval) => sum + interval, 0) / timeIntervals.length
+}
+
+function calculateMaxTimeSpanForMinCandleWidth(viewportWidthPx: number, candles: Candle[]): number {
+  if (candles.length < 2) {
+    return Infinity
+  }
+  
+  const avgTimeInterval = getAverageTimeInterval(candles)
+  return (avgTimeInterval * viewportWidthPx * CANDLE_WIDTH_USAGE) / MIN_CANDLE_WIDTH_PX
+}
+
+function calculateMinTimeSpanForMaxCandleWidth(viewportWidthPx: number, candles: Candle[]): number {
+  if (candles.length < 2) {
+    return 0
+  }
+  
+  const avgTimeInterval = getAverageTimeInterval(candles)
+  return (avgTimeInterval * viewportWidthPx * CANDLE_WIDTH_USAGE) / MAX_CANDLE_WIDTH_PX
 }
 
 export function filterCandlesByViewport(
@@ -161,14 +227,42 @@ export function filterCandlesByViewport(
   paddingPercent: number = DEFAULT_TIME_PADDING_PERCENT
 ): Candle[] {
   if (candles.length === 0) return []
-  
+
   const timeSpan = viewport.to - viewport.from
   const padding = timeSpan > 0 ? timeSpan * paddingPercent : DEFAULT_TIME_PADDING_MS
   const minTime = viewport.from - padding
   const maxTime = viewport.to + padding
-  
-  return candles.filter(candle => 
+
+  return candles.filter(candle =>
     candle.timestamp >= minTime && candle.timestamp <= maxTime
   )
+}
+
+export function calculateInitialCandleCount(viewportWidthPx: number): number {
+  const availableWidth = viewportWidthPx * CANDLE_WIDTH_USAGE
+  const maxFromWidth = Math.floor(availableWidth / MIN_CANDLE_WIDTH_PX)
+
+  let count: number
+  if (maxFromWidth < DEFAULT_INITIAL_CANDLES) {
+    count = maxFromWidth
+  } else if (maxFromWidth <= MAX_INITIAL_CANDLES) {
+    count = DEFAULT_INITIAL_CANDLES
+  } else {
+    count = MAX_INITIAL_CANDLES
+  }
+
+  return Math.max(1, count)
+}
+
+export function createViewportFromLastCandles(
+  candles: Candle[],
+  count: number,
+  widthPx: number,
+  heightPx: number
+): Viewport | null {
+  if (candles.length === 0) return null
+
+  const lastCandles = candles.slice(-count)
+  return createViewportFromCandles(lastCandles, widthPx, heightPx)
 }
 

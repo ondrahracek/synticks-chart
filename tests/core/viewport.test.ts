@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { timeToX, xToTime, priceToY, yToPrice, panViewport, zoomViewport, createViewportFromCandles, updateViewportDimensions, getDataTimeRange, clampViewportToRange, zoomViewportWithBounds, filterCandlesByViewport } from '../../src/core/viewport'
+import { timeToX, xToTime, priceToY, yToPrice, panViewport, zoomViewport, createViewportFromCandles, updateViewportDimensions, getDataTimeRange, clampViewportToRange, zoomViewportWithBounds, filterCandlesByViewport, calculateInitialCandleCount, createViewportFromLastCandles } from '../../src/core/viewport'
 import type { Viewport } from '../../src/core/viewport'
 import type { Candle } from '../../src/core/types'
 
@@ -343,6 +343,127 @@ describe('filterCandlesByViewport', () => {
     
     expect(result).toHaveLength(1)
     expect(result[0].timestamp).toBe(1500)
+  })
+})
+
+describe('calculateInitialCandleCount', () => {
+  it('returns calculated count when screen cannot fit default', () => {
+    const count = calculateInitialCandleCount(800)
+    expect(count).toBe(80)
+  })
+
+  it('returns calculated count for narrow screens', () => {
+    const count = calculateInitialCandleCount(400)
+    expect(count).toBeLessThanOrEqual(150)
+    expect(count).toBeGreaterThan(0)
+  })
+
+  it('caps at maximum for very wide screens', () => {
+    const count = calculateInitialCandleCount(2000)
+    expect(count).toBe(150)
+  })
+})
+
+describe('createViewportFromLastCandles', () => {
+  it('creates viewport from last N candles', () => {
+    const candles: Candle[] = []
+    for (let i = 0; i < 200; i++) {
+      candles.push({
+        timestamp: 1000 + i * 1000,
+        open: 100,
+        high: 110,
+        low: 90,
+        close: 105,
+        volume: 1000
+      })
+    }
+    
+    const viewport = createViewportFromLastCandles(candles, 150, 800, 600)
+    
+    expect(viewport).not.toBeNull()
+    expect(viewport!.from).toBeLessThan(candles[candles.length - 150].timestamp)
+    expect(viewport!.to).toBeGreaterThan(candles[candles.length - 1].timestamp)
+    expect(viewport!.widthPx).toBe(800)
+    expect(viewport!.heightPx).toBe(600)
+  })
+
+  it('handles fewer candles than requested count', () => {
+    const candles: Candle[] = [
+      { timestamp: 1000, open: 100, high: 110, low: 90, close: 105, volume: 1000 },
+      { timestamp: 2000, open: 105, high: 115, low: 95, close: 110, volume: 1000 }
+    ]
+    
+    const viewport = createViewportFromLastCandles(candles, 150, 800, 600)
+    
+    expect(viewport).not.toBeNull()
+    expect(viewport!.from).toBeLessThan(1000)
+    expect(viewport!.to).toBeGreaterThan(2000)
+  })
+})
+
+describe('zoomViewportWithBounds with minimum candle width', () => {
+  it('prevents zooming out beyond minimum candle width', () => {
+    const candles: Candle[] = []
+    for (let i = 0; i < 100; i++) {
+      candles.push({
+        timestamp: 1000 + i * 60000,
+        open: 100,
+        high: 110,
+        low: 90,
+        close: 105,
+        volume: 1000
+      })
+    }
+    
+    const viewport: Viewport = {
+      from: 1000,
+      to: 6100000,
+      widthPx: 800,
+      heightPx: 600
+    }
+    
+    const dataRange = getDataTimeRange(candles)
+    const zoomed = zoomViewportWithBounds(viewport, 0.1, 3050000, dataRange!.minTime, dataRange!.maxTime, candles)
+    
+    const visibleCandles = filterCandlesByViewport(candles, zoomed)
+    expect(visibleCandles.length).toBeGreaterThan(0)
+    
+    const timeSpan = zoomed.to - zoomed.from
+    const avgTimeInterval = 60000
+    const maxAllowedSpan = (avgTimeInterval * viewport.widthPx * 0.8) / 8
+    expect(timeSpan).toBeLessThanOrEqual(maxAllowedSpan)
+  })
+
+  it('prevents zooming in beyond maximum candle width', () => {
+    const candles: Candle[] = []
+    for (let i = 0; i < 100; i++) {
+      candles.push({
+        timestamp: 1000 + i * 60000,
+        open: 100,
+        high: 110,
+        low: 90,
+        close: 105,
+        volume: 1000
+      })
+    }
+    
+    const viewport: Viewport = {
+      from: 1000,
+      to: 6100000,
+      widthPx: 800,
+      heightPx: 600
+    }
+    
+    const dataRange = getDataTimeRange(candles)
+    const zoomed = zoomViewportWithBounds(viewport, 100, 3050000, dataRange!.minTime, dataRange!.maxTime, candles)
+    
+    const visibleCandles = filterCandlesByViewport(candles, zoomed)
+    expect(visibleCandles.length).toBeGreaterThan(0)
+    
+    const timeSpan = zoomed.to - zoomed.from
+    const avgTimeInterval = 60000
+    const minAllowedSpan = (avgTimeInterval * viewport.widthPx * 0.8) / 100
+    expect(timeSpan).toBeGreaterThanOrEqual(minAllowedSpan)
   })
 })
 
