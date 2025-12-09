@@ -219,5 +219,25 @@ describe('SynticksChart', () => {
 
     expect(scrollToLiveSpy).toHaveBeenCalled()
   })
+
+  it('sets theme on mount when theme prop is provided', () => {
+    const setThemeSpy = vi.fn()
+    ;(ChartEngine as any).mockImplementation(() => ({
+      setSymbol: vi.fn(),
+      setTimeframe: vi.fn(),
+      setTheme: setThemeSpy,
+      destroy: vi.fn()
+    }))
+
+    mount(SynticksChart, {
+      props: {
+        symbol: 'BTCUSDT',
+        timeframe: '1m',
+        theme: 'dark'
+      }
+    })
+
+    expect(setThemeSpy).toHaveBeenCalledWith('dark')
+  })
 })
 

@@ -38,6 +38,9 @@ onMounted(() => {
   })
   engine.setSymbol(props.symbol)
   engine.setTimeframe(props.timeframe)
+  if (props.theme) {
+    engine.setTheme(props.theme)
+  }
 
   resizeObserver = new ResizeObserver(() => {
     if (canvasRef.value) {

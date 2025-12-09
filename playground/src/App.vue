@@ -10,7 +10,7 @@ import { ThemeName, timeframeToMs, type Candle } from 'synticks-chart'
 const chartRef = ref<InstanceType<typeof SynticksChart> | null>(null)
 const { symbol, timeframe } = usePlaygroundState()
 const activeTool = ref<string>('pan')
-const theme = ref<ThemeName>('light')
+const theme = ref<ThemeName>('dark')
 const indicators = ref({
   sma20: false,
   sma50: false,
