@@ -1,3 +1,5 @@
+const MAX_LEVELS = 1000
+
 export function calculatePriceInterval(minPrice: number, maxPrice: number, targetLines: number): number {
   const priceSpan = maxPrice - minPrice
   if (priceSpan <= 0 || targetLines <= 0) return 1
@@ -22,13 +24,27 @@ export function calculatePriceInterval(minPrice: number, maxPrice: number, targe
 }
 
 export function generatePriceLevels(minPrice: number, maxPrice: number, interval: number): number[] {
-  if (interval <= 0) return []
+  if (interval <= 0 || !isFinite(interval)) return []
+  if (!isFinite(minPrice) || !isFinite(maxPrice)) return []
+  if (minPrice >= maxPrice) return []
+  
+  const priceSpan = maxPrice - minPrice
+  const expectedCount = Math.ceil(priceSpan / interval) + 1
+  
+  if (expectedCount > MAX_LEVELS) {
+    return []
+  }
   
   const start = Math.ceil(minPrice / interval) * interval
   const levels: number[] = []
   
-  for (let price = start; price <= maxPrice; price += interval) {
+  let price = start
+  let iterations = 0
+  
+  while (price <= maxPrice && iterations < MAX_LEVELS) {
     levels.push(price)
+    price = start + (levels.length * interval)
+    iterations++
   }
   
   return levels
@@ -64,13 +80,27 @@ export function calculateTimeInterval(from: number, to: number, targetLines: num
 }
 
 export function generateTimeLevels(from: number, to: number, interval: number): number[] {
-  if (interval <= 0) return []
+  if (interval <= 0 || !isFinite(interval)) return []
+  if (!isFinite(from) || !isFinite(to)) return []
+  if (from >= to) return []
+  
+  const timeSpan = to - from
+  const expectedCount = Math.ceil(timeSpan / interval) + 1
+  
+  if (expectedCount > MAX_LEVELS) {
+    return []
+  }
   
   const start = Math.ceil(from / interval) * interval
   const levels: number[] = []
   
-  for (let time = start; time <= to; time += interval) {
+  let time = start
+  let iterations = 0
+  
+  while (time <= to && iterations < MAX_LEVELS) {
     levels.push(time)
+    time = start + (levels.length * interval)
+    iterations++
   }
   
   return levels

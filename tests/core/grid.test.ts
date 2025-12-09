@@ -19,6 +19,20 @@ describe('generatePriceLevels', () => {
     expect(levels[levels.length - 1]).toBeLessThanOrEqual(51000)
     expect(levels.every((level, i) => i === 0 || level > levels[i - 1])).toBe(true)
   })
+
+  it('returns empty array when interval is extremely small to prevent infinite loops', () => {
+    const levels = generatePriceLevels(100, 200, 1e-10)
+    
+    expect(levels).toEqual([])
+  })
+
+  it('handles invalid inputs safely', () => {
+    expect(generatePriceLevels(100, 200, NaN)).toEqual([])
+    expect(generatePriceLevels(100, 200, Infinity)).toEqual([])
+    expect(generatePriceLevels(NaN, 200, 10)).toEqual([])
+    expect(generatePriceLevels(100, Infinity, 10)).toEqual([])
+    expect(generatePriceLevels(200, 100, 10)).toEqual([])
+  })
 })
 
 describe('calculateTimeInterval', () => {
@@ -43,6 +57,20 @@ describe('generateTimeLevels', () => {
     expect(levels[0]).toBeGreaterThanOrEqual(from)
     expect(levels[levels.length - 1]).toBeLessThanOrEqual(to)
     expect(levels.every((level, i) => i === 0 || level > levels[i - 1])).toBe(true)
+  })
+
+  it('returns empty array when interval is extremely small to prevent infinite loops', () => {
+    const levels = generateTimeLevels(1000, 2000, 1e-10)
+    
+    expect(levels).toEqual([])
+  })
+
+  it('handles invalid inputs safely', () => {
+    expect(generateTimeLevels(1000, 2000, NaN)).toEqual([])
+    expect(generateTimeLevels(1000, 2000, Infinity)).toEqual([])
+    expect(generateTimeLevels(NaN, 2000, 10000)).toEqual([])
+    expect(generateTimeLevels(1000, Infinity, 10000)).toEqual([])
+    expect(generateTimeLevels(2000, 1000, 10000)).toEqual([])
   })
 })
 
