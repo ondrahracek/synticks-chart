@@ -2,8 +2,9 @@ import type { Candle } from './types'
 
 const DEFAULT_TIME_PADDING_PERCENT = 0.1
 const DEFAULT_TIME_PADDING_MS = 60000
+const DEFAULT_PRICE_PADDING_PERCENT = 0.05
 const DEFAULT_INITIAL_CANDLES = 150
-const MIN_CANDLE_WIDTH_PX = 8
+const MIN_CANDLE_WIDTH_PX = 10
 const MAX_CANDLE_WIDTH_PX = 100
 const MAX_INITIAL_CANDLES = 400
 const CANDLE_WIDTH_USAGE = 0.8
@@ -288,6 +289,23 @@ export function panToLatest(viewport: Viewport, candles: Candle[]): Viewport {
     ...viewport,
     from: latestCandleTime - timeSpan + timePadding,
     to: latestCandleTime + timePadding
+  }
+}
+
+export function addPricePadding(minPrice: number, maxPrice: number, paddingPercent: number = DEFAULT_PRICE_PADDING_PERCENT): { minPrice: number; maxPrice: number } {
+  const priceSpan = maxPrice - minPrice
+  if (priceSpan <= 0) {
+    const fixedPadding = minPrice > 0 ? minPrice * paddingPercent : 1
+    return {
+      minPrice: minPrice - fixedPadding,
+      maxPrice: maxPrice + fixedPadding
+    }
+  }
+  
+  const padding = priceSpan * paddingPercent
+  return {
+    minPrice: minPrice - padding,
+    maxPrice: maxPrice + padding
   }
 }
 

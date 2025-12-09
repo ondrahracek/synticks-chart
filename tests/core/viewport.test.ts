@@ -349,7 +349,9 @@ describe('filterCandlesByViewport', () => {
 describe('calculateInitialCandleCount', () => {
   it('returns calculated count when screen cannot fit default', () => {
     const count = calculateInitialCandleCount(800)
-    expect(count).toBe(80)
+    // With 800px width, available = 640px (80%), maxFromWidth = 640/10 = 64
+    // Since 64 < 150 (DEFAULT), count = 64
+    expect(count).toBe(64)
   })
 
   it('returns calculated count for narrow screens', () => {

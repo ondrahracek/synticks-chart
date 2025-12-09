@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ChartRenderer } from '../../src/rendering/ChartRenderer'
 import type { ChartState } from '../../src/core/state'
 import { getTheme } from '../../src/core/theme'
+import * as layoutModule from '../../src/rendering/layout'
 
 describe('ChartRenderer', () => {
   let canvas: HTMLCanvasElement
@@ -1205,6 +1206,170 @@ describe('ChartRenderer', () => {
       const spacing = Math.abs(x2 - x1)
       expect(spacing).toBeGreaterThanOrEqual(80)
     }
+  })
+
+  it('calculates price range from visible candles only, not all candles', () => {
+    let fillRectCalls: Array<[number, number, number, number]> = []
+    let moveToCalls: Array<[number, number]> = []
+    
+    const mockCtx = {
+      strokeStyle: '',
+      fillStyle: '',
+      lineWidth: 0,
+      font: '',
+      textAlign: '',
+      textBaseline: '',
+      clearRect: vi.fn(),
+      fillRect: vi.fn((x: number, y: number, w: number, h: number) => {
+        fillRectCalls.push([x, y, w, h])
+      }),
+      beginPath: vi.fn(),
+      moveTo: vi.fn((x: number, y: number) => {
+        moveToCalls.push([x, y])
+      }),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      fillText: vi.fn()
+    }
+    
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 600
+    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx as unknown as CanvasRenderingContext2D)
+    const renderer = new ChartRenderer(canvas)
+
+    // Create candles with different price ranges:
+    // Old candles: prices 100-200
+    // New candles: prices 300-400
+    const state: ChartState = {
+      candles: [
+        { timestamp: 1000, open: 100, high: 150, low: 100, close: 120, volume: 1000 },
+        { timestamp: 2000, open: 120, high: 200, low: 110, close: 180, volume: 1200 },
+        { timestamp: 3000, open: 300, high: 350, low: 300, close: 320, volume: 1300 },
+        { timestamp: 4000, open: 320, high: 400, low: 310, close: 380, volume: 1400 }
+      ],
+      autoScrollEnabled: true,
+      viewport: {
+        from: 3000,  // Only showing new candles (300-400 price range)
+        to: 4000,
+        widthPx: 800,
+        heightPx: 600
+      }
+    }
+
+    renderer.setState(state)
+    renderer.render()
+
+    // If price range uses ALL candles (100-400), candles at 300-400 would be positioned
+    // in the middle of the canvas (since 300 is in the middle of 100-400 range).
+    // If price range uses VISIBLE candles only (300-400), candles should use
+    // the full height range (low at bottom, high at top).
+    
+    // Get Y positions of candle bodies (from fillRect calls)
+    // For visible candles (300-400), low prices (300-310) should be near bottom (high Y)
+    // and high prices (350-400) should be near top (low Y)
+    const candleBodyYs = fillRectCalls.map(rect => rect[1]) // y coordinate
+    
+    // If price range is correct (300-400), candles should span a large Y range
+    // If price range is wrong (100-400), candles would be squished in middle
+    const minY = Math.min(...candleBodyYs)
+    const maxY = Math.max(...candleBodyYs)
+    const ySpan = maxY - minY
+    
+    // With correct price range (300-400), candles should use most of the canvas height
+    // Allow for some padding, but should use at least 50% of height (300px)
+    expect(ySpan).toBeGreaterThan(300)
+    
+    // Also check that candles are not all clustered in the middle
+    // If using wrong price range (100-400), candles would be around middle (Y ~200-400)
+    // With correct range (300-400), candles should be distributed across height
+    const averageY = candleBodyYs.reduce((sum, y) => sum + y, 0) / candleBodyYs.length
+    // Average should not be in the very top (which would indicate wrong price range)
+    // With correct range (300-400), average should be in lower half (closer to bottom since we have low prices visible)
+    // Canvas height is 600, so middle would be 300. With correct range, average should be >= 200
+    expect(averageY).toBeGreaterThanOrEqual(200)
+  })
+
+  it('adds padding to price range so candle wicks do not touch top and bottom edges', () => {
+    let capturedMinPrice: number | null = null
+    let capturedMaxPrice: number | null = null
+    let capturedRects: any[] = []
+    
+    const originalComputeCandleRects = layoutModule.computeCandleRects
+    const computeCandleRectsSpy = vi.spyOn(layoutModule, 'computeCandleRects').mockImplementation((candles: any, viewport: any, minPrice: number, maxPrice: number) => {
+      capturedMinPrice = minPrice
+      capturedMaxPrice = maxPrice
+      const rects = originalComputeCandleRects(candles, viewport, minPrice, maxPrice)
+      capturedRects = rects
+      return rects
+    })
+    
+    const mockCtx = {
+      strokeStyle: '',
+      fillStyle: '',
+      lineWidth: 0,
+      font: '',
+      textAlign: '',
+      textBaseline: '',
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      fillText: vi.fn()
+    }
+    
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 600
+    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx as unknown as CanvasRenderingContext2D)
+    const renderer = new ChartRenderer(canvas)
+
+    // Create candles with prices 100-200
+    // Without padding: minPrice=100, maxPrice=200
+    // With 5% padding: minPrice=95, maxPrice=205
+    const state: ChartState = {
+      candles: [
+        { timestamp: 1000, open: 100, high: 200, low: 100, close: 150, volume: 1000 },
+        { timestamp: 2000, open: 150, high: 200, low: 100, close: 180, volume: 1200 }
+      ],
+      autoScrollEnabled: true,
+      viewport: {
+        from: 1000,
+        to: 2000,
+        widthPx: 800,
+        heightPx: 600
+      }
+    }
+
+    renderer.setState(state)
+    renderer.render()
+
+    // Verify padding was applied to price range
+    expect(capturedMinPrice).not.toBeNull()
+    expect(capturedMaxPrice).not.toBeNull()
+    
+    // With 5% padding on span of 100, padding = 5
+    // So minPrice should be 100 - 5 = 95, maxPrice should be 200 + 5 = 205
+    expect(capturedMinPrice!).toBeLessThan(100)
+    expect(capturedMaxPrice!).toBeGreaterThan(200)
+    
+    // Verify wick Y coordinates don't touch edges
+    // highY should be > 0 (top edge), lowY should be < 600 (bottom edge)
+    expect(capturedRects.length).toBeGreaterThan(0)
+    
+    const allHighYs = capturedRects.map(r => r.highY)
+    const allLowYs = capturedRects.map(r => r.lowY)
+    
+    const minHighY = Math.min(...allHighYs)
+    const maxLowY = Math.max(...allLowYs)
+    
+    // Wicks should not touch top edge (Y=0) or bottom edge (Y=600)
+    expect(minHighY).toBeGreaterThan(5)
+    expect(maxLowY).toBeLessThan(595)
+    
+    computeCandleRectsSpy.mockRestore()
   })
 })
 

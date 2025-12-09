@@ -437,4 +437,4 @@ MIT
 
 ## Author
 
-Ondřej Hráček <ondra.hracek@seznam.cz>
+Ondřej Hráček
