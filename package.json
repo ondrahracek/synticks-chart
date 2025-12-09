@@ -1,6 +1,6 @@
 {
   "name": "synticks-chart",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A real-time candlestick charting engine for Vue 3 and vanilla JavaScript/TypeScript",
   "license": "MIT",
   "type": "module",
