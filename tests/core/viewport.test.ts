@@ -3,6 +3,48 @@ import { timeToX, xToTime, priceToY, yToPrice, panViewport, zoomViewport, create
 import type { Viewport } from '../../src/core/viewport'
 import type { Candle } from '../../src/core/types'
 
+describe('safe array operations', () => {
+  it('handles extremely large arrays without stack overflow in createViewportFromCandles', () => {
+    const largeCandles: Candle[] = []
+    const baseTime = 1000000
+    for (let i = 0; i < 200000; i++) {
+      largeCandles.push({
+        timestamp: baseTime + i * 60000,
+        open: 100,
+        high: 110,
+        low: 90,
+        close: 105,
+        volume: 1000
+      })
+    }
+
+    expect(() => {
+      const viewport = createViewportFromCandles(largeCandles, 800, 600)
+      expect(viewport).not.toBeNull()
+    }).not.toThrow()
+  })
+
+  it('handles extremely large arrays without stack overflow in getDataTimeRange', () => {
+    const largeCandles: Candle[] = []
+    const baseTime = 1000000
+    for (let i = 0; i < 200000; i++) {
+      largeCandles.push({
+        timestamp: baseTime + i * 60000,
+        open: 100,
+        high: 110,
+        low: 90,
+        close: 105,
+        volume: 1000
+      })
+    }
+
+    expect(() => {
+      const range = getDataTimeRange(largeCandles)
+      expect(range).not.toBeNull()
+    }).not.toThrow()
+  })
+})
+
 describe('timeToX', () => {
   it('maps from time to 0', () => {
     const viewport: Viewport = {

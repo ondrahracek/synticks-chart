@@ -2,6 +2,7 @@ import type { ChartState } from '../core/state'
 import type { Viewport } from '../core/viewport'
 import { computeCandleRects } from './layout'
 import { timeToX, priceToY, filterCandlesByViewport, addPricePadding } from '../core/viewport'
+import { safeMinOf, safeMaxOf } from '../core/utils'
 import { calculatePriceInterval, generatePriceLevels, calculateTimeInterval, generateTimeLevels, formatPrice, formatTime, calculateOptimalLineCount } from '../core/grid'
 import { getDefaultLabelPadding } from './padding'
 
@@ -108,8 +109,8 @@ export class ChartRenderer {
     const candles = this.state?.candles || []
     if (candles.length > 0) {
       const visibleCandles = filterCandlesByViewport(candles, this.viewport)
-      const rawMinPrice = visibleCandles.length > 0 ? Math.min(...visibleCandles.map(c => c.low)) : Math.min(...candles.map(c => c.low))
-      const rawMaxPrice = visibleCandles.length > 0 ? Math.max(...visibleCandles.map(c => c.high)) : Math.max(...candles.map(c => c.high))
+      const rawMinPrice = visibleCandles.length > 0 ? safeMinOf(visibleCandles, c => c.low) : safeMinOf(candles, c => c.low)
+      const rawMaxPrice = visibleCandles.length > 0 ? safeMaxOf(visibleCandles, c => c.high) : safeMaxOf(candles, c => c.high)
       const { minPrice, maxPrice } = addPricePadding(rawMinPrice, rawMaxPrice)
       const priceSpan = maxPrice - minPrice
       
@@ -157,8 +158,8 @@ export class ChartRenderer {
     const candles = this.state?.candles || []
     if (candles.length > 0) {
       const visibleCandles = filterCandlesByViewport(candles, this.viewport)
-      const rawMinPrice = visibleCandles.length > 0 ? Math.min(...visibleCandles.map(c => c.low)) : Math.min(...candles.map(c => c.low))
-      const rawMaxPrice = visibleCandles.length > 0 ? Math.max(...visibleCandles.map(c => c.high)) : Math.max(...candles.map(c => c.high))
+      const rawMinPrice = visibleCandles.length > 0 ? safeMinOf(visibleCandles, c => c.low) : safeMinOf(candles, c => c.low)
+      const rawMaxPrice = visibleCandles.length > 0 ? safeMaxOf(visibleCandles, c => c.high) : safeMaxOf(candles, c => c.high)
       const { minPrice, maxPrice } = addPricePadding(rawMinPrice, rawMaxPrice)
       const priceSpan = maxPrice - minPrice
       
@@ -210,8 +211,8 @@ export class ChartRenderer {
 
     const { offsetX, offsetY } = this.getPaddingOffsets()
     const visibleCandles = filterCandlesByViewport(candles, this.viewport)
-    const rawMinPrice = visibleCandles.length > 0 ? Math.min(...visibleCandles.map(c => c.low)) : Math.min(...candles.map(c => c.low))
-    const rawMaxPrice = visibleCandles.length > 0 ? Math.max(...visibleCandles.map(c => c.high)) : Math.max(...candles.map(c => c.high))
+    const rawMinPrice = visibleCandles.length > 0 ? safeMinOf(visibleCandles, c => c.low) : safeMinOf(candles, c => c.low)
+    const rawMaxPrice = visibleCandles.length > 0 ? safeMaxOf(visibleCandles, c => c.high) : safeMaxOf(candles, c => c.high)
     const { minPrice, maxPrice } = addPricePadding(rawMinPrice, rawMaxPrice)
 
     const rects = computeCandleRects(candles, this.viewport, minPrice, maxPrice)
@@ -243,8 +244,8 @@ export class ChartRenderer {
     const { offsetX, offsetY } = this.getPaddingOffsets()
     const candles = this.state.candles || []
     const visibleCandles = filterCandlesByViewport(candles, this.viewport)
-    const rawMinPrice = visibleCandles.length > 0 ? Math.min(...visibleCandles.map(c => c.low)) : (candles.length > 0 ? Math.min(...candles.map(c => c.low)) : 0)
-    const rawMaxPrice = visibleCandles.length > 0 ? Math.max(...visibleCandles.map(c => c.high)) : (candles.length > 0 ? Math.max(...candles.map(c => c.high)) : 100)
+    const rawMinPrice = visibleCandles.length > 0 ? safeMinOf(visibleCandles, c => c.low) : (candles.length > 0 ? safeMinOf(candles, c => c.low) : 0)
+    const rawMaxPrice = visibleCandles.length > 0 ? safeMaxOf(visibleCandles, c => c.high) : (candles.length > 0 ? safeMaxOf(candles, c => c.high) : 100)
     const { minPrice, maxPrice } = addPricePadding(rawMinPrice, rawMaxPrice)
 
     ctx.strokeStyle = this.getThemeColor('indicator', '#ff9800')
@@ -295,8 +296,8 @@ export class ChartRenderer {
     const { offsetX, offsetY } = this.getPaddingOffsets()
     const candles = this.state.candles || []
     const visibleCandles = filterCandlesByViewport(candles, this.viewport)
-    const rawMinPrice = visibleCandles.length > 0 ? Math.min(...visibleCandles.map(c => c.low)) : (candles.length > 0 ? Math.min(...candles.map(c => c.low)) : 0)
-    const rawMaxPrice = visibleCandles.length > 0 ? Math.max(...visibleCandles.map(c => c.high)) : (candles.length > 0 ? Math.max(...candles.map(c => c.high)) : 100)
+    const rawMinPrice = visibleCandles.length > 0 ? safeMinOf(visibleCandles, c => c.low) : (candles.length > 0 ? safeMinOf(candles, c => c.low) : 0)
+    const rawMaxPrice = visibleCandles.length > 0 ? safeMaxOf(visibleCandles, c => c.high) : (candles.length > 0 ? safeMaxOf(candles, c => c.high) : 100)
     const { minPrice, maxPrice } = addPricePadding(rawMinPrice, rawMaxPrice)
 
     const drawings = this.state.drawings || []

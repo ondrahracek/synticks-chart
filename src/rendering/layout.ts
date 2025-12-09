@@ -30,7 +30,7 @@ export function computeCandleRects(
   const timeSpan = viewport.to - viewport.from
   
   let candleWidth: number
-  if (visibleCandles.length === 1) {
+  if (visibleCandles.length === 1 || timeSpan === 0) {
     candleWidth = Math.max(1, viewport.widthPx * 0.8)
   } else {
     const timeIntervals: number[] = []

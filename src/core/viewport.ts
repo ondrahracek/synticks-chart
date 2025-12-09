@@ -1,4 +1,5 @@
 import type { Candle } from './types'
+import { safeMin, safeMax } from './utils'
 
 const DEFAULT_TIME_PADDING_PERCENT = 0.1
 const DEFAULT_TIME_PADDING_MS = 60000
@@ -74,8 +75,8 @@ export function createViewportFromCandles(
   if (candles.length === 0) return null
 
   const timestamps = candles.map(c => c.timestamp)
-  const minTime = Math.min(...timestamps)
-  const maxTime = Math.max(...timestamps)
+  const minTime = safeMin(timestamps)
+  const maxTime = safeMax(timestamps)
   const timeSpan = maxTime - minTime
   const timePadding = timeSpan > 0 ? timeSpan * DEFAULT_TIME_PADDING_PERCENT : DEFAULT_TIME_PADDING_MS
 
@@ -106,8 +107,8 @@ export function getDataTimeRange(
   if (candles.length === 0) return null
 
   const timestamps = candles.map(c => c.timestamp)
-  const minTime = Math.min(...timestamps)
-  const maxTime = Math.max(...timestamps)
+  const minTime = safeMin(timestamps)
+  const maxTime = safeMax(timestamps)
   const timeSpan = maxTime - minTime
   const timePadding = timeSpan > 0
     ? timeSpan * paddingPercent

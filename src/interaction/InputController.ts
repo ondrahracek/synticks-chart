@@ -2,6 +2,7 @@ import type { ChartState } from '../core/state'
 import { panViewport, zoomViewport, zoomViewportWithBounds, xToTime, yToPrice, getDataTimeRange, filterCandlesByViewport, addPricePadding, type Viewport } from '../core/viewport'
 import { startDrawing, updateDrawing, finishDrawing } from '../core/drawings'
 import type { AutoScrollController } from '../core/auto-scroll'
+import { safeMinOf, safeMaxOf } from '../core/utils'
 
 export class InputController {
   private isDragging = false
@@ -102,8 +103,8 @@ export class InputController {
       if (endPoint && state.viewport) {
         const candles = state.candles || []
         const visibleCandles = filterCandlesByViewport(candles, state.viewport)
-        const rawMinPrice = visibleCandles.length > 0 ? Math.min(...visibleCandles.map(c => c.low)) : (candles.length > 0 ? Math.min(...candles.map(c => c.low)) : 0)
-        const rawMaxPrice = visibleCandles.length > 0 ? Math.max(...visibleCandles.map(c => c.high)) : (candles.length > 0 ? Math.max(...candles.map(c => c.high)) : 100)
+        const rawMinPrice = visibleCandles.length > 0 ? safeMinOf(visibleCandles, c => c.low) : (candles.length > 0 ? safeMinOf(candles, c => c.low) : 0)
+        const rawMaxPrice = visibleCandles.length > 0 ? safeMaxOf(visibleCandles, c => c.high) : (candles.length > 0 ? safeMaxOf(candles, c => c.high) : 100)
         const { minPrice, maxPrice } = addPricePadding(rawMinPrice, rawMaxPrice)
 
         let shape = startDrawing(this.currentDrawing.kind, this.currentDrawing.startPoint)
@@ -176,8 +177,8 @@ export class InputController {
 
     const candles = state.candles || []
     const visibleCandles = filterCandlesByViewport(candles, state.viewport)
-    const rawMinPrice = visibleCandles.length > 0 ? Math.min(...visibleCandles.map(c => c.low)) : (candles.length > 0 ? Math.min(...candles.map(c => c.low)) : 0)
-    const rawMaxPrice = visibleCandles.length > 0 ? Math.max(...visibleCandles.map(c => c.high)) : (candles.length > 0 ? Math.max(...candles.map(c => c.high)) : 100)
+    const rawMinPrice = visibleCandles.length > 0 ? safeMinOf(visibleCandles, c => c.low) : (candles.length > 0 ? safeMinOf(candles, c => c.low) : 0)
+    const rawMaxPrice = visibleCandles.length > 0 ? safeMaxOf(visibleCandles, c => c.high) : (candles.length > 0 ? safeMaxOf(candles, c => c.high) : 100)
     const { minPrice, maxPrice } = addPricePadding(rawMinPrice, rawMaxPrice)
 
     const price = yToPrice(y, state.viewport, minPrice, maxPrice)

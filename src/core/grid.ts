@@ -2,9 +2,10 @@ const MAX_LEVELS = 1000
 
 export function calculatePriceInterval(minPrice: number, maxPrice: number, targetLines: number): number {
   const priceSpan = maxPrice - minPrice
-  if (priceSpan <= 0 || targetLines <= 0) return 1
+  if (priceSpan <= 0 || targetLines <= 0 || !isFinite(priceSpan) || !isFinite(minPrice) || !isFinite(maxPrice)) return 1
   
   const rawInterval = priceSpan / targetLines
+  if (!isFinite(rawInterval) || rawInterval <= 0) return 1
   
   const magnitude = Math.pow(10, Math.floor(Math.log10(rawInterval)))
   const normalized = rawInterval / magnitude
@@ -52,9 +53,10 @@ export function generatePriceLevels(minPrice: number, maxPrice: number, interval
 
 export function calculateTimeInterval(from: number, to: number, targetLines: number): number {
   const timeSpan = to - from
-  if (timeSpan <= 0 || targetLines <= 0) return 60000
+  if (timeSpan <= 0 || targetLines <= 0 || !isFinite(timeSpan) || !isFinite(from) || !isFinite(to)) return 60000
   
   const rawInterval = timeSpan / targetLines
+  if (!isFinite(rawInterval) || rawInterval <= 0) return 60000
   
   const intervals = [
     1000,
